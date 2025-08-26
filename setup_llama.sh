@@ -1,0 +1,55 @@
+#!/bin/bash
+# LLaMA 2 Setup Guide for Critical Weight Analysis
+# Follow these steps to gain access to LLaMA 2 models
+
+echo "🦙 LLaMA 2 Setup Guide for Critical Weight Analysis"
+echo "================================================="
+echo ""
+
+echo "📋 STEP 1: Request Access (One-time setup)"
+echo "------------------------------------------"
+echo "1. Go to: https://huggingface.co/meta-llama/Llama-2-7b-hf"
+echo "2. Click 'Request access to this model'"
+echo "3. Fill out the form with:"
+echo "   - Your name and email"
+echo "   - Research institution/purpose"
+echo "   - Agree to custom license terms"
+echo "4. Wait for approval (usually 1-24 hours)"
+echo ""
+
+echo "📋 STEP 2: Get Hugging Face Token"
+echo "---------------------------------"
+echo "1. Go to: https://huggingface.co/settings/tokens"
+echo "2. Create a new token with 'Read' permissions"
+echo "3. Copy the token (starts with hf_...)"
+echo ""
+
+echo "📋 STEP 3: Set Environment Variable"
+echo "----------------------------------"
+echo "Option A - Temporary (this session only):"
+echo "export HF_TOKEN=hf_your_actual_token_here"
+echo ""
+echo "Option B - Permanent (recommended):"
+echo "echo 'export HF_TOKEN=hf_your_actual_token_here' >> ~/.bashrc"
+echo "source ~/.bashrc"
+echo ""
+
+echo "📋 STEP 4: Test Access"
+echo "---------------------"
+echo "python -c \"from transformers import AutoTokenizer; print('✅ Access granted!'); AutoTokenizer.from_pretrained('meta-llama/Llama-2-7b-hf')\""
+echo ""
+
+echo "📋 STEP 5: Run Analysis"
+echo "----------------------"
+echo "# Discovery mode (recommended for 7B+ models)"
+echo "python phase1_runner.py \\"
+echo "  --model meta-llama/Llama-2-7b-hf \\"
+echo "  --metric grad_x_weight \\"
+echo "  --topk 100 \\"
+echo "  --eval-limit 20 \\"
+echo "  --no-perturbation \\"
+echo "  --output llama7b_discovery/"
+echo ""
+
+echo "🎯 After setup is complete, you can run:"
+echo "./llama_research.sh"

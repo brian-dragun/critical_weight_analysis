@@ -1,0 +1,218 @@
+# Critical Weight Analysis Project - .gitignore
+# =============================================
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# Virtual environments
+.env
+.venv
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+.conda/
+
+# Research Data & Results (Large files that shouldn't be in git)
+# =============================================================
+
+# Output directories with analysis results
+outputs/
+results/
+experiments/
+analysis_results/
+*_research_*/
+*_analysis_*/
+*_results_*/
+
+# Specific output patterns from your project
+critical_analysis_*/
+pythia*_integration/
+llama*_research_*/
+phase*_output/
+
+# Data files (CSV, JSON results - often large)
+*.csv
+*.json
+!config.json              # Keep configuration files
+!pyproject.toml          # Keep project configuration
+!package.json            # Keep package configuration
+!tsconfig.json           # Keep TypeScript config if any
+
+# Large data files
+*.pkl
+*.pickle
+*.npz
+*.npy
+*.h5
+*.hdf5
+*.parquet
+
+# Model files (too large for GitHub)
+# ==================================
+*.bin
+*.safetensors
+*.pth
+*.pt
+*.ckpt
+models/
+checkpoints/
+model_cache/
+transformers_cache/
+torch_cache/
+
+# Temporary and cache files
+# ========================
+tmp/
+temp/
+cache/
+.cache/
+*.tmp
+*.temp
+
+# Logs and monitoring
+# ==================
+*.log
+logs/
+log/
+tensorboard_logs/
+wandb/
+mlruns/
+
+# Jupyter Notebooks
+# =================
+.ipynb_checkpoints
+*/.ipynb_checkpoints/*
+
+# IDE and Editor files
+# ===================
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.spyderproject
+.spyproject
+
+# OS generated files
+# ==================
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+desktop.ini
+
+# GPU and CUDA
+# =============
+*.cuda
+*.gpu
+
+# API keys and tokens (IMPORTANT for security)
+# ============================================
+.env
+*.token
+*_token.txt
+*_key.txt
+*.key
+api_keys.py
+secrets.py
+.secrets/
+
+# HuggingFace specific
+# ===================
+.huggingface/
+hf_token
+hf_cache/
+
+# Research specific exclusions
+# ===========================
+
+# Keep important documentation and configs
+!README.md
+!INTEGRATION_GUIDE.md
+!LLAMA_RESEARCH_GUIDE.md
+!MODEL_GUIDE.md
+!*.md
+
+# Keep setup and configuration scripts
+!setup.sh
+!setup_*.sh
+!test_*.sh
+!*_runner.py
+
+# Keep source code structure
+!src/
+!src/**/*.py
+!notebooks/*.ipynb
+
+# Keep small sample data files
+!src/data/dev_small.txt
+!src/data/*.txt
+
+# Exclude specific large output patterns
+figs/
+plots/
+visualizations/
+
+# Database files
+*.db
+*.sqlite
+*.sqlite3
+
+# Backup files
+*.bak
+*.backup
+*~
+
+# Pytest cache
+.pytest_cache/
+.coverage
+htmlcov/
+
+# MyPy cache
+.mypy_cache/
+.dmypy.json
+dmypy.json
+
+# Package manager files
+poetry.lock
+Pipfile.lock
+
+# Docker
+Dockerfile.local
+docker-compose.override.yml
+.dockerignore
+
+# Large evaluation datasets (but keep small samples)
+evaluation_data/
+large_datasets/
+benchmark_data/
+
+# Generated documentation
+docs/_build/
+site/
