@@ -59,9 +59,9 @@ critical_weight_analysis/
 
 ## � VM Environment Setup (Lambda Labs / Cloud GPU)
 
-### **🔥 Quick VM Setup Guide**
+### **🔥 Quick VM Setup Guide with UV**
 
-This section helps you recreate the entire development environment on a fresh Lambda Labs instance or similar cloud GPU provider.
+This section helps you recreate the entire development environment on a fresh Lambda Labs instance or similar cloud GPU provider using `uv` for blazing-fast package management.
 
 #### **1. Initial VM Configuration:**
 
@@ -81,7 +81,20 @@ sudo apt install -y python3.12 python3.12-venv python3.12-dev python-is-python3
 nvidia-smi
 ```
 
-#### **2. Clone Repository & Setup Project:**
+#### **2. Install UV (Ultra-Fast Python Package Manager):**
+
+```bash
+# Install uv (much faster than pip)
+curl -LsSf https://astral.sh/uv/install.sh | sh
+
+# Reload shell or add to PATH
+source $HOME/.local/bin/env
+
+# Verify uv installation
+uv --version
+```
+
+#### **3. Clone Repository & Setup Project with UV:**
 
 ```bash
 # Create working directory
@@ -92,24 +105,91 @@ cd /home/ubuntu/nova
 git clone https://github.com/brian-dragun/critical_weight_analysis.git
 cd critical_weight_analysis
 
-# Run automated environment setup
-./setup.sh
+# Create virtual environment with uv (much faster)
+uv venv .venv --python 3.12
 
 # Activate virtual environment
 source .venv/bin/activate
+
+# Install dependencies with uv (10x faster than pip)
+uv pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu118
+uv pip install transformers datasets accelerate
+uv pip install numpy pandas matplotlib seaborn jupyter
+uv pip install huggingface_hub tokenizers
+uv pip install tqdm psutil GPUtil
+
+# Install development tools
+uv pip install pytest black isort mypy
+
+# Verify installation with GPU check
+python -c "import torch; print(f'PyTorch: {torch.__version__}'); print(f'CUDA Available: {torch.cuda.is_available()}'); print(f'GPU: {torch.cuda.get_device_name(0) if torch.cuda.is_available() else \"No GPU\"}')"
+
+# Test core functionality
+python scripts/quick_test.py
+```
+
+#### **4. Alternative: Use UV with pyproject.toml (Recommended for Reproducibility):**
+
+```bash
+# After cloning the repository
+cd /home/ubuntu/nova/critical_weight_analysis
+
+# Install project with uv (reads pyproject.toml automatically)
+uv venv .venv --python 3.12
+source .venv/bin/activate
+uv pip install -e .
+
+# Or install from requirements if available
+uv pip install -r requirements.txt
 
 # Verify installation
 python scripts/quick_test.py
 ```
 
-#### **3. GPU & CUDA Verification:**
+#### **5. GPU & CUDA Verification:**
 
 ```bash
-# Check CUDA availability
-python -c "import torch; print(f'CUDA Available: {torch.cuda.is_available()}'); print(f'GPU Count: {torch.cuda.device_count()}'); print(f'GPU Name: {torch.cuda.get_device_name(0) if torch.cuda.is_available() else \"No GPU\"}')"
+# Comprehensive GPU check
+python -c "
+import torch
+print(f'PyTorch Version: {torch.__version__}')
+print(f'CUDA Available: {torch.cuda.is_available()}')
+print(f'CUDA Version: {torch.version.cuda}')
+print(f'GPU Count: {torch.cuda.device_count()}')
+if torch.cuda.is_available():
+    print(f'GPU Name: {torch.cuda.get_device_name(0)}')
+    print(f'GPU Memory: {torch.cuda.get_device_properties(0).total_memory / 1e9:.1f} GB')
+"
 
-# Run GPU diagnostic script
+# Run project GPU diagnostic
 python scripts/check_gpu.py
+```
+
+#### **6. Performance Benefits of UV:**
+
+```bash
+# Speed comparison (for reference):
+# pip install torch transformers     # ~2-5 minutes
+# uv pip install torch transformers  # ~30-60 seconds
+
+# UV also provides better dependency resolution and caching
+uv pip list  # View installed packages
+uv cache clean  # Clean package cache if needed
+```
+
+#### **7. Generate Requirements for Future Deployments:**
+
+```bash
+# After installing all packages, export exact versions
+uv pip freeze > requirements.txt
+
+# Or create a more organized requirements structure
+uv pip freeze | grep -E "torch|transformers|huggingface" > requirements-ml.txt
+uv pip freeze | grep -E "numpy|pandas|matplotlib|seaborn" > requirements-data.txt
+uv pip freeze | grep -E "pytest|black|isort|mypy" > requirements-dev.txt
+
+# For next VM setup, just run:
+# uv pip install -r requirements.txt
 ```
 
 ## 🔗 GitHub & HuggingFace Integration Setup
@@ -216,7 +296,7 @@ EOF
 source .env
 ```
 
-### **🔄 Daily Workflow Commands**
+### **🔄 Daily Workflow Commands (with UV)**
 
 ```bash
 # Start of session
@@ -224,16 +304,36 @@ cd /home/ubuntu/nova/critical_weight_analysis
 source .venv/bin/activate
 source .env
 
+# If you need to install new packages (super fast with UV)
+uv pip install new-package-name
+
+# Update requirements after adding packages
+uv pip freeze > requirements.txt
+
 # Run experiments
 python phase1_runner.py --model gpt2 --metric grad_x_weight --topk 100
 
-# Commit results
-git add outputs/
-git commit -m "Add analysis results for gpt2"
+# Commit results (including updated requirements)
+git add outputs/ requirements.txt
+git commit -m "Add analysis results for gpt2 and update requirements"
 git push
 
 # Share on HuggingFace
 huggingface-cli upload critical-weight-analysis-results outputs/critical_analysis_* --repo-type dataset
+```
+
+### **⚡ Super Fast VM Recreation with UV**
+
+```bash
+# Complete setup in one command block (after system setup)
+cd /home/ubuntu/nova && \
+git clone https://github.com/brian-dragun/critical_weight_analysis.git && \
+cd critical_weight_analysis && \
+uv venv .venv --python 3.12 && \
+source .venv/bin/activate && \
+uv pip install -r requirements.txt && \
+python scripts/quick_test.py && \
+echo "✅ Ready for research in ~2 minutes!"
 ```
 
 ## �🚀 Installation & Setup
@@ -708,10 +808,10 @@ git push
 cp .env ~/backup_env_$(date +%Y%m%d_%H%M%S)
 cp -r outputs/ ~/backup_outputs_$(date +%Y%m%d_%H%M%S)/
 
-# 3. Export installed packages list
-pip freeze > requirements_backup.txt
-git add requirements_backup.txt
-git commit -m "Update requirements backup"
+# 3. Export installed packages list with UV (much faster)
+uv pip freeze > requirements.txt
+git add requirements.txt
+git commit -m "Update requirements with UV freeze"
 git push
 
 # 4. Upload latest results to HuggingFace
@@ -768,14 +868,16 @@ These files contain your work and should always be backed up:
 ### **⚡ Quick Recovery Commands**
 
 ```bash
-# One-command complete restore (after VM setup)
+# One-command complete restore with UV (after VM setup)
 cd /home/ubuntu/nova/critical_weight_analysis && \
-./setup.sh && \
+uv venv .venv --python 3.12 && \
 source .venv/bin/activate && \
+uv pip install -r requirements.txt && \
 huggingface-cli download critical-weight-analysis-results --repo-type dataset --local-dir outputs/ && \
 python scripts/quick_test.py
 
-# One-command backup before termination
+# One-command backup before termination (with UV freeze)
+uv pip freeze > requirements.txt && \
 git add . && \
 git commit -m "Auto-backup $(date)" && \
 git push && \
