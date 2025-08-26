@@ -57,7 +57,186 @@ critical_weight_analysis/
     └── quick_test.py                  # Functionality validation
 ```
 
-## 🚀 Installation & Setup
+## � VM Environment Setup (Lambda Labs / Cloud GPU)
+
+### **🔥 Quick VM Setup Guide**
+
+This section helps you recreate the entire development environment on a fresh Lambda Labs instance or similar cloud GPU provider.
+
+#### **1. Initial VM Configuration:**
+
+```bash
+# Update system packages
+sudo apt update && sudo apt upgrade -y
+
+# Install essential development tools
+sudo apt install -y git curl wget build-essential software-properties-common
+
+# Install Python 3.12 (if not available)
+sudo add-apt-repository ppa:deadsnakes/ppa -y
+sudo apt update
+sudo apt install -y python3.12 python3.12-venv python3.12-dev python-is-python3
+
+# Verify GPU setup
+nvidia-smi
+```
+
+#### **2. Clone Repository & Setup Project:**
+
+```bash
+# Create working directory
+mkdir -p /home/ubuntu/nova
+cd /home/ubuntu/nova
+
+# Clone the project repository
+git clone https://github.com/brian-dragun/critical_weight_analysis.git
+cd critical_weight_analysis
+
+# Run automated environment setup
+./setup.sh
+
+# Activate virtual environment
+source .venv/bin/activate
+
+# Verify installation
+python scripts/quick_test.py
+```
+
+#### **3. GPU & CUDA Verification:**
+
+```bash
+# Check CUDA availability
+python -c "import torch; print(f'CUDA Available: {torch.cuda.is_available()}'); print(f'GPU Count: {torch.cuda.device_count()}'); print(f'GPU Name: {torch.cuda.get_device_name(0) if torch.cuda.is_available() else \"No GPU\"}')"
+
+# Run GPU diagnostic script
+python scripts/check_gpu.py
+```
+
+## 🔗 GitHub & HuggingFace Integration Setup
+
+### **📦 GitHub Repository Setup**
+
+#### **Option 1: Quick Setup Script (Recommended)**
+```bash
+# From the nova directory
+cd /home/ubuntu/nova
+./setup_github.sh
+```
+
+#### **Option 2: Manual GitHub Setup**
+```bash
+# Configure git (replace with your details)
+git config --global user.name "Your Name"
+git config --global user.email "your.email@example.com"
+
+# Create SSH key for GitHub
+ssh-keygen -t ed25519 -C "your.email@example.com"
+cat ~/.ssh/id_ed25519.pub
+# Copy this key to GitHub SSH settings
+
+# In your project directory
+cd /home/ubuntu/nova/critical_weight_analysis
+
+# Add remote (if not already added)
+git remote add origin https://github.com/yourusername/critical_weight_analysis.git
+
+# Create initial commit
+git add .
+git commit -m "Initial commit: Critical Weight Analysis Platform"
+git push -u origin main
+```
+
+### **🤗 HuggingFace Hub Setup**
+
+#### **Option 1: Automated Setup Script (Recommended)**
+```bash
+# From the nova directory
+cd /home/ubuntu/nova
+./setup_huggingface.sh
+```
+
+#### **Option 2: Manual HuggingFace Setup**
+```bash
+# Install HuggingFace CLI
+pip install -U "huggingface_hub[cli]"
+
+# Login to HuggingFace (you'll need your token)
+huggingface-cli login
+# Get token from: https://huggingface.co/settings/tokens
+
+# Create dataset repository
+huggingface-cli repo create critical-weight-analysis-results --type dataset
+
+# Upload results (after running experiments)
+huggingface-cli upload critical-weight-analysis-results outputs/ --repo-type dataset
+```
+
+### **🚀 Complete Setup Verification**
+
+```bash
+# Test complete pipeline
+python phase1_runner.py \
+  --model gpt2 \
+  --metric grad_x_weight \
+  --topk 10 \
+  --eval-limit 5 \
+  --verbose
+
+# Check outputs were created
+ls -la outputs/
+
+# Verify git status
+git status
+
+# Test HuggingFace connection
+python -c "from huggingface_hub import HfApi; api = HfApi(); print('HF Connection:', api.whoami())"
+```
+
+### **📋 Environment Variables Setup**
+
+Create a `.env` file for persistent configuration:
+
+```bash
+# Create environment file
+cat > /home/ubuntu/nova/critical_weight_analysis/.env << 'EOF'
+# HuggingFace Configuration
+HF_TOKEN=your_huggingface_token_here
+HF_HOME=/home/ubuntu/.cache/huggingface
+
+# CUDA Configuration
+CUDA_VISIBLE_DEVICES=0
+PYTORCH_CUDA_ALLOC_CONF=max_split_size_mb:512
+
+# Project Configuration
+PYTHONPATH=/home/ubuntu/nova/critical_weight_analysis/src
+PROJECT_ROOT=/home/ubuntu/nova/critical_weight_analysis
+EOF
+
+# Load environment variables
+source .env
+```
+
+### **🔄 Daily Workflow Commands**
+
+```bash
+# Start of session
+cd /home/ubuntu/nova/critical_weight_analysis
+source .venv/bin/activate
+source .env
+
+# Run experiments
+python phase1_runner.py --model gpt2 --metric grad_x_weight --topk 100
+
+# Commit results
+git add outputs/
+git commit -m "Add analysis results for gpt2"
+git push
+
+# Share on HuggingFace
+huggingface-cli upload critical-weight-analysis-results outputs/critical_analysis_* --repo-type dataset
+```
+
+## �🚀 Installation & Setup
 
 ### **Prerequisites:**
 - NVIDIA GPU with CUDA support (tested on GH200 480GB)
@@ -510,6 +689,100 @@ python phase1_runner.py --model pythia-2.8b --metric grad_x_weight --topk 50
 # Then run test_integration.sh to validate with targeted experiments
 ```
 
+```
+
+## 💾 VM Backup & Data Preservation
+
+### **🔄 Before Terminating Lambda Labs Instance**
+
+**Save your work and configurations:**
+
+```bash
+# 1. Commit all current work
+cd /home/ubuntu/nova/critical_weight_analysis
+git add .
+git commit -m "Save work before VM termination - $(date)"
+git push
+
+# 2. Backup environment configuration
+cp .env ~/backup_env_$(date +%Y%m%d_%H%M%S)
+cp -r outputs/ ~/backup_outputs_$(date +%Y%m%d_%H%M%S)/
+
+# 3. Export installed packages list
+pip freeze > requirements_backup.txt
+git add requirements_backup.txt
+git commit -m "Update requirements backup"
+git push
+
+# 4. Upload latest results to HuggingFace
+huggingface-cli upload critical-weight-analysis-results outputs/ --repo-type dataset
+
+# 5. Create tarball of entire project (optional)
+cd /home/ubuntu
+tar -czf nova_backup_$(date +%Y%m%d_%H%M%S).tar.gz nova/
+```
+
+### **🚀 Restoring on New VM Instance**
+
+**When you spin up a new Lambda Labs instance:**
+
+```bash
+# 1. Follow VM Environment Setup (from section above)
+# ... (complete steps 1-3 from VM Environment Setup)
+
+# 2. Restore your exact environment
+cd /home/ubuntu/nova/critical_weight_analysis
+cp ~/backup_env_* .env  # if you saved .env file
+source .env
+
+# 3. Download previous results from HuggingFace (optional)
+huggingface-cli download critical-weight-analysis-results --repo-type dataset --local-dir restored_outputs/
+
+# 4. Verify everything works
+python scripts/quick_test.py
+python phase1_runner.py --model gpt2 --metric grad_x_weight --topk 10 --eval-limit 5 --verbose
+```
+
+### **📦 Essential Files to Never Lose**
+
+These files contain your work and should always be backed up:
+
+```bash
+# Code and configuration
+├── src/                    # Your core code
+├── phase1_runner.py        # Main CLI interface  
+├── .env                    # Environment variables
+├── .gitignore             # Git exclusions
+├── pyproject.toml         # Package configuration
+└── requirements_backup.txt # Exact package versions
+
+# Results and experiments  
+├── outputs/               # All experimental results
+├── notebooks/             # Research notebooks
+└── logs/                  # Execution logs
+
+# HuggingFace cache (optional - can be re-downloaded)
+~/.cache/huggingface/      # Model cache (large files)
+```
+
+### **⚡ Quick Recovery Commands**
+
+```bash
+# One-command complete restore (after VM setup)
+cd /home/ubuntu/nova/critical_weight_analysis && \
+./setup.sh && \
+source .venv/bin/activate && \
+huggingface-cli download critical-weight-analysis-results --repo-type dataset --local-dir outputs/ && \
+python scripts/quick_test.py
+
+# One-command backup before termination
+git add . && \
+git commit -m "Auto-backup $(date)" && \
+git push && \
+huggingface-cli upload critical-weight-analysis-results outputs/ --repo-type dataset && \
+echo "✅ Backup complete! Safe to terminate VM."
+```
+
 ## 🔧 Troubleshooting
 
 ### **Common Issues:**
@@ -574,120 +847,3 @@ jupyter lab notebooks/sensitivity_analysis_research.ipynb
 ```
 
 🎉 **Your complete research system for LLM weight sensitivity analysis is ready!** 🔬✨
-python -m src.experiments.phase1_runner \
-  --model gpt2 \
-  --texts src/data/dev_small.txt \
-  --layers 2 4 6 8 \
-  --metric grad_x_weight \
-  --topk 100 \
-  --outdir outputs/run_001
-
-# 2) Weight masking experiment
-python -m src.experiments.phase1_runner \
-  --model gpt2 \
-  --texts src/data/dev_small.txt \
-  --layers 4 \
-  --metric grad_x_weight \
-  --topk 100 \
-  --mask zero \
-  --eval ppl \
-  --outdir outputs/run_002
-```
-
-## 🧪 Research Methodology
-
-### Sensitivity Metrics
-- **grad_x_weight**: |∂L/∂W ⊙ W| (primary metric)
-- **grad_squared**: (∂L/∂W)² (alternative)
-- **hessian_diag**: Diagonal Hessian approximation
-
-### Models Supported
-- **GPT-2 family**: gpt2, gpt2-medium, gpt2-large
-- **LLaMA-2**: llama-2-7b, llama-2-13b (if licensed)
-- **Pythia**: EleutherAI/pythia-* (research baseline)
-
-### Interventions
-- **Zero masking**: Set top-K weights to zero
-- **Pruning**: Remove weights below sensitivity threshold
-- **Bit-flip injection**: Optional fault injection (FKeras)
-
-## 📊 Expected Deliverables
-
-### Phase 1 Outputs
-- **Sensitivity profiles**: Per-layer statistics and histograms
-- **Perplexity tables**: Pre/post intervention for layers {2,4,6,8}
-- **Cross-model comparison**: GPT-2 vs LLaMA-2 analysis
-- **Visualizations**: Distribution plots and sensitivity heatmaps
-
-## 🛠️ Core APIs
-
-```python
-from src.models.loader import load_model
-from src.sensitivity.metrics import compute_sensitivity
-from src.sensitivity.rank import rank_topk
-from src.sensitivity.mask import apply_mask
-from src.eval.perplexity import compute_perplexity
-
-# Load model
-model, tokenizer = load_model("gpt2", device="cuda")
-
-# Compute sensitivity
-sensitivity = compute_sensitivity(model, texts, "grad_x_weight", [2, 4])
-
-# Rank top-K weights
-topk_weights = rank_topk(sensitivity, k=100)
-
-# Apply intervention
-mask_handle = apply_mask(model, topk_weights, mode="zero")
-
-# Evaluate impact
-perplexity = compute_perplexity(model, tokenizer, texts)
-```
-
-## 🔬 Research Focus Areas
-
-### Critical Weight Discovery
-- Which weights have the highest sensitivity?
-- How does sensitivity vary across layers and architectures?
-- What patterns emerge in critical weight distributions?
-
-### Robustness Analysis
-- How much does masking top-K weights impact performance?
-- Are gradient-based metrics good predictors of importance?
-- Which layers are most/least robust to interventions?
-
-### Method Comparison
-- **CGM**: Gradient × weight magnitude
-- **LLM heuristics**: Activation-change scoring (placeholder)
-- **Hybrid approaches**: Combining multiple signals
-
-## 📈 Acceptance Criteria
-
-- [x] Project structure created
-- [ ] GPT-2 small baseline (200 tokens → sensitivity for layers 2,4)
-- [ ] CSV export of sensitivity rankings
-- [ ] Weight masking increases perplexity vs baseline
-- [ ] Reproducible results with same seed
-- [ ] Visualization of sensitivity distributions
-- [ ] Cross-model comparison completed
-
-## 🔧 Development
-
-### Code Quality
-- Type hints and docstrings required
-- Small, pure functions preferred
-- No notebook-only code paths
-- Structured artifact export (CSV, PNG, Markdown)
-
-### Reproducibility
-- Deterministic seeding
-- Library version logging
-- Git commit tracking
-- Atomic artifact writing
-
----
-
-**Status**: Initial setup complete  
-**Next Steps**: Implement core modules (loader.py, metrics.py, perplexity.py)  
-**Target Models**: GPT-2 small → LLaMA-2-7b  
-**Expected Timeline**: Phase 1 completion in 2-3 weeks
