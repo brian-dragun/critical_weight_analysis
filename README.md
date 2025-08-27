@@ -1,22 +1,55 @@
-# Critical Weight Analysis: LLM Sensitivity & Super-Weight Prioritization
+# Critical Weight Analysis: Enhanced PhD Research Implementation
 
-A comprehensive research system for analyzing weight sensitivity in transformer language models through gradient-based metrics, critical weight identification, and systematic perturbation experiments.
+A comprehensive research system for analyzing weight sensitivity in transformer language models through gradient-based and non-gradient metrics, advanced perturbation experiments, and rigorous evaluation methodologies.
 
-## 🎯 Project Overview
+## 🎯 Enhanced Research Goals
 
-### **Research Goals:**
-1. **Global Weight Discovery**: Identify the most sensitive weights across entire transformer models
-2. **Sensitivity Metrics**: Implement gradient×weight and gradient² sensitivity measures  
-3. **Systematic Perturbation**: Test impact of masking top-K critical weights
-4. **Cross-Model Analysis**: Compare sensitivity patterns across model sizes and architectures
-5. **Integration Testing**: Validate discoveries through targeted perturbation experiments
+### **Phase 1 Complete Implementation:**
+1. **Multi-Modal Sensitivity Discovery**: Gradient-based (grad×weight, grad², Hutchinson diagonal) and non-gradient (magnitude, activation-weighted) metrics
+2. **Advanced Perturbation Testing**: Sign flip, Gaussian noise, bit flip, and zeroing experiments
+3. **Rigorous Control Baselines**: Random-K and bottom-K weight selection for statistical validation
+4. **Stability Analysis**: Jaccard overlap computation across seeds and data batches
+5. **Comprehensive Evaluation**: Perplexity, NLL, token accuracy with detailed performance tracking
+6. **Full Reproducibility**: Experiment manifest logging with environment, git state, and configuration tracking
 
 ### **Key Capabilities:**
-- ⚡ **Fast Analysis**: Process 100K+ weights in seconds with progress tracking
-- 🎯 **Top-K Ranking**: Global ranking of most critical weights across all layers
-- 📊 **Automated Experiments**: Complete pipeline from sensitivity → ranking → perturbation → export
-- 🔗 **Research Integration**: Bridges with existing perturbation research workflows
-- 📈 **Professional Output**: CSV exports, JSON summaries, and comprehensive logging
+- ⚡ **Advanced Metrics**: Hutchinson diagonal estimator for curvature analysis
+- 🎯 **Flexible Ranking**: Per-layer and global Top-K weight selection
+- � **Rigorous Controls**: Random and bottom-K baselines for statistical validation
+- 📊 **Multi-Perturbation**: Sign flip, Gaussian noise, bit flip experiments
+- 🔗 **Stability Testing**: Cross-seed and cross-batch Jaccard similarity analysis
+- 📈 **Publication-Ready**: Comprehensive visualization suite and statistical analysis
+
+## 🚀 Enhanced PhD Research Workflow
+
+### **Target Workflow (Now Implemented):**
+```bash
+python phase1_runner_enhanced.py \
+    --model meta-llama/Llama-3.1-8B \
+    --metric hutchinson_diag \
+    --topk 100 --mode global \
+    --perturb sign_flip --perturb-scale 1.0 \
+    --controls random_k,bottom_k \
+    --seeds 0,1,2 \
+    --stability-check \
+    --save-plots \
+    --out-dir outputs/llama31_8b_hutch_diag_k100
+```
+
+### **Quick Start Examples:**
+```bash
+# Basic gradient analysis
+python phase1_runner_enhanced.py --model gpt2 --metric grad_x_weight --topk 100
+
+# Non-gradient magnitude analysis  
+python phase1_runner_enhanced.py --model gpt2 --metric magnitude --topk 100 --save-plots
+
+# Advanced perturbation study
+python phase1_runner_enhanced.py --model gpt2 --metric grad_x_weight --topk 100 \
+    --perturb sign_flip --controls random_k,bottom_k --stability-check
+```
+
+📋 **For comprehensive usage examples:** [`docs/USAGE_EXAMPLES.md`](docs/USAGE_EXAMPLES.md)
 
 ## 🏗️ Complete Project Structure
 
