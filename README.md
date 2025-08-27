@@ -845,10 +845,57 @@ grad_x_weight,50,0.5,25,20.84,20.84,0.00,1.00
 
 #### **🚨 Logging & Troubleshooting:**
 
-##### **Console Output is Logged:**
-- All console output is automatically saved to: `outputs/critical_analysis_TIMESTAMP/analysis.log`
-- Includes full timestamps, parameter values, and error messages
-- Perfect for reproducing experiments and debugging issues
+##### **📝 Console Output is Automatically Logged:**
+
+**✅ YES - All console output is saved for analysis!**
+
+The system automatically captures **all console output** to persistent log files:
+
+- **Log Location**: `outputs/critical_analysis_TIMESTAMP/analysis.log`
+- **Content**: Complete session including timestamps, progress bars, statistics, warnings, and errors
+- **Format**: Structured with timestamps and log levels for easy analysis
+- **Console + File**: Output appears both on console AND in the log file simultaneously
+
+**🔍 Log File Example:**
+```
+2024-01-15 14:32:10,123 - INFO - 🔍 Logging enabled - saving to: outputs/critical_analysis_20240115_143210/analysis.log
+2024-01-15 14:32:15,456 - INFO - Loading evaluation data
+2024-01-15 14:32:16,789 - INFO - Loaded 50 evaluation texts
+2024-01-15 14:32:20,012 - INFO - Loading model: gpt2
+2024-01-15 14:32:35,345 - INFO - Model loaded: 124M parameters on cuda:0
+```
+
+**📊 What Gets Logged:**
+- **Setup**: Environment configuration, device detection, memory allocation
+- **Data Loading**: Number of evaluation texts, tokenization progress
+- **Model Loading**: Parameter counts, device placement, memory usage
+- **Sensitivity Analysis**: Layer processing, weight counts, computation progress
+- **Rankings**: Top-K selection algorithms, statistical summaries
+- **Exports**: File creation confirmations, CSV/JSON generation
+- **Errors**: Full stack traces, CUDA memory issues, model loading failures
+- **Performance**: Timing information, memory usage, GPU utilization
+
+**🔧 Using Log Files for Research:**
+```bash
+# View latest log
+tail -f outputs/critical_analysis_*/analysis.log
+
+# Search for specific patterns
+grep "INFO.*Loaded" outputs/critical_analysis_*/analysis.log
+grep "ERROR\|WARNING" outputs/critical_analysis_*/analysis.log
+
+# Extract timing information
+grep "Processing.*layers" outputs/critical_analysis_*/analysis.log
+
+# Compare multiple runs
+diff outputs/critical_analysis_20240115_*/analysis.log outputs/critical_analysis_20240116_*/analysis.log
+```
+
+**💡 Log File Benefits:**
+- **Reproducibility**: Full record of experimental parameters and outputs
+- **Debugging**: Detailed error messages with context and timestamps
+- **Performance Analysis**: Memory usage and timing patterns across experiments
+- **Research Documentation**: Permanent record of model behavior and sensitivity patterns
 
 ##### **Common Output Patterns:**
 

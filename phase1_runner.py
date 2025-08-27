@@ -21,6 +21,7 @@ Usage:
 
 import argparse
 import json
+import logging
 import sys
 import time
 from datetime import datetime
@@ -176,6 +177,21 @@ def setup_environment(args: argparse.Namespace) -> Tuple[str, Path]:
     
     session_dir = output_dir / f"critical_analysis_{experiment_id}"
     session_dir.mkdir(exist_ok=True)
+    
+    # Setup logging to capture all console output
+    log_file = session_dir / "analysis.log"
+    logging.basicConfig(
+        level=logging.INFO,
+        format='%(asctime)s - %(levelname)s - %(message)s',
+        handlers=[
+            logging.FileHandler(log_file),
+            logging.StreamHandler(sys.stdout)  # Also print to console
+        ]
+    )
+    
+    # Create a logger for this session
+    logger = logging.getLogger('critical_weight_analysis')
+    logger.info(f"🔍 Logging enabled - saving to: {log_file}")
     
     return device, session_dir
 
@@ -642,8 +658,9 @@ def main():
     # Parse arguments
     args = parse_args()
     
-    # Setup environment
+    # Setup environment and logging
     device, session_dir = setup_environment(args)
+    logger = logging.getLogger('critical_weight_analysis')
     
     # Print header
     print_header(args, device, session_dir)
@@ -651,11 +668,14 @@ def main():
     try:
         # Load evaluation data
         print("\n📚 Loading Evaluation Data")
+        logger.info("Loading evaluation data")
         eval_texts = load_evaluation_data(args)
         print(f"✅ Loaded {len(eval_texts)} evaluation texts")
+        logger.info(f"Loaded {len(eval_texts)} evaluation texts")
         
         # Load model
         print("\n🤖 Loading Model")
+        logger.info(f"Loading model: {args.model}")
         model, tokenizer = load_model(args.model, device=device)
         
         model_info = {
