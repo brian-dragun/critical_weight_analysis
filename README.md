@@ -633,7 +633,11 @@ Compare base models with their instruction-tuned variants
 
 ### **📈 Understanding the Output:**
 
-#### **Console Output:**
+The Critical Weight Analysis system provides detailed console output and generates multiple files for comprehensive analysis. Here's what each section means:
+
+#### **📊 Console Output Breakdown:**
+
+##### **🔬 Analysis Header & Configuration**
 ```
 🔬 Critical Weight Analysis - Phase 1 Runner
 ============================================================
@@ -645,18 +649,50 @@ Compare base models with their instruction-tuned variants
 📚 Evaluation limit: 30
 💾 Output directory: outputs/critical_analysis_20250826_221118
 ============================================================
+```
+**Explanation:**
+- **Started**: Timestamp for experiment tracking and reproducibility
+- **Model**: HuggingFace model identifier being analyzed
+- **Device**: Whether using CPU or GPU (cuda) for computation
+- **Metrics**: Which sensitivity metric is being computed (`grad_x_weight`, `grad_squared`)
+- **Top-K values**: How many most critical weights to identify and test
+- **Evaluation limit**: Number of text samples used for perplexity evaluation
+- **Output directory**: Where all results are saved (timestamped for uniqueness)
 
+##### **📚 Data Loading Phase**
+```
 📚 Loading Evaluation Data
 ✅ Loaded 30 evaluation texts
+```
+**Explanation:**
+- Loads evaluation dataset from `src/data/dev_small.txt`
+- **30 texts**: Subset for faster analysis (adjustable with `--eval-limit`)
+- These texts are used for both baseline perplexity and post-perturbation evaluation
 
+##### **🤖 Model Loading Phase**
+```
 🤖 Loading Model  
 ✅ Model: GPTNeoXForCausalLM
 ✅ Parameters: 2,775,208,960
 ✅ Device: cuda:0
+```
+**Explanation:**
+- **GPTNeoXForCausalLM**: PyTorch model class (varies by model family)
+- **2.77B parameters**: Total trainable weights in the model
+- **cuda:0**: Specific GPU device used (important for multi-GPU systems)
 
+##### **📏 Baseline Evaluation**
+```
 📏 Baseline Evaluation
 ✅ Baseline perplexity: 20.84
+```
+**Explanation:**
+- **Baseline perplexity**: Model's original performance on evaluation texts
+- **Lower is better**: ~20.84 is good for Pythia-2.8b on this dataset
+- This serves as the reference point for measuring perturbation impact
 
+##### **🧮 Sensitivity Analysis Phase**
+```
 🧮 Computing Sensitivity Metrics
 ----------------------------------------
 🔄 Computing grad_x_weight sensitivity...
@@ -666,14 +702,35 @@ Compare base models with their instruction-tuned variants
   📉 Std: 1.91e-04  
   🔝 Max: 1.67e+00
   ⏱️ Time: 3.5s
+```
+**Explanation:**
+- **grad_x_weight**: Gradient × weight magnitude sensitivity metric
+- **130 layers**: Total model layers analyzed (attention + MLP + embeddings)
+- **837,888 weights**: Subset of weights analyzed (not all 2.77B for efficiency)
+- **Statistics**:
+  - **Mean (5.43e-05)**: Average sensitivity across all weights
+  - **Std (1.91e-04)**: Standard deviation shows sensitivity distribution spread
+  - **Max (1.67)**: Highest sensitivity value found (indicates critical weight)
+- **Time (3.5s)**: Computation time for the sensitivity analysis
 
+##### **🏆 Critical Weight Ranking Phase**
+```
 🏆 Ranking Critical Weights
 ----------------------------------------
 🔄 Ranking weights for grad_x_weight...
     🔄 Finding top-50 weights from 130 layers...
     ✅ Selected top-50 weights
   Top-50: 50 weights across 9 layers (11.7s)
+```
+**Explanation:**
+- **Global ranking**: Sorts all 837,888 weights by sensitivity value
+- **Top-50**: Identifies the 50 most critical weights across the entire model
+- **9 layers**: These critical weights are concentrated in 9 out of 130 layers
+- **11.7s**: Time for ranking and selection process
+- **Key insight**: Critical weights cluster in specific layers (not uniformly distributed)
 
+##### **🎯 Perturbation Experiments Phase**
+```
 🎯 Perturbation Analysis
 ----------------------------------------
 📊 Running 5 perturbation experiments...
@@ -681,13 +738,30 @@ Compare base models with their instruction-tuned variants
   grad_x_weight Top-50 25%: PPL 20.8 (+0.0)
   [... more results ...]
 ✅ Completed 5/5 experiments
+```
+**Explanation:**
+- **5 experiments**: Different masking ratios tested (10%, 25%, 50%, 75%, 100%)
+- **Masking**: Setting critical weights to zero to test impact
+- **PPL 20.8 (+0.0)**: Perplexity after perturbation (change from baseline)
+- **+0.0 change**: Indicates these weights may not be as critical as expected
+- **Research insight**: High gradient×weight doesn't always predict performance impact
 
+##### **💾 File Export Phase**
+```
 💾 Exporting Results
 ----------------------------------------
   ✅ Summary: experiment_summary.json
   ✅ Perturbation: perturbation_results.csv (5 rows)
   ✅ Top-50 grad_x_weight: top_50_weights_grad_x_weight.csv
-  
+```
+**Explanation:**
+- **experiment_summary.json**: High-level results for quick analysis
+- **perturbation_results.csv**: Detailed data for each masking experiment
+- **top_50_weights_grad_x_weight.csv**: Ranked list of most critical weights
+- **5 rows**: One row per masking ratio tested
+
+##### **🔬 Final Summary**
+```
 🔬 Analysis Complete - Summary
 ============================================================
 🤖 Model: EleutherAI/pythia-2.8b
@@ -699,8 +773,105 @@ Compare base models with their instruction-tuned variants
   PPL: 20.8 → 20.8 (+0.0)
 🎉 Analysis complete!
 ```
+**Explanation:**
+- **Baseline PPL**: Reference performance
+- **Max PPL increase (0.00)**: Largest performance degradation observed
+- **Most Impactful**: Which experiment caused the biggest change
+- **Research conclusion**: In this case, masking top-50 grad×weight weights had minimal impact
 
-#### **Key Files Generated:**
+#### **🔍 Interpreting Results:**
+
+##### **Case 1: Significant Impact (PPL increase > 1.0)**
+```
+grad_x_weight Top-50 25%: PPL 20.8 → 22.3 (+1.5)
+```
+**Interpretation**: Found truly critical weights! Gradient×weight metric successfully identified important parameters.
+
+##### **Case 2: Minimal Impact (PPL increase < 0.1)** 
+```
+grad_x_weight Top-50 25%: PPL 20.8 → 20.9 (+0.1)
+```
+**Interpretation**: Metric may not capture true importance, or model is robust to these perturbations.
+
+##### **Case 3: No Impact (PPL increase = 0.0)**
+```
+grad_x_weight Top-50 25%: PPL 20.8 → 20.8 (+0.0)
+```
+**Interpretation**: Either the weights aren't critical, or the masking didn't affect the specific evaluation texts used.
+
+#### **📁 Generated Files Explained:**
+
+1. **`experiment_summary.json`** - Quick overview for automated analysis:
+```json
+{
+  "model_name": "EleutherAI/pythia-2.8b",
+  "baseline_perplexity": 20.84,
+  "num_parameters": 2775208960,
+  "total_weights_analyzed": 837888,
+  "layers_analyzed": 130,
+  "experiments_completed": 5,
+  "max_ppl_increase": 0.00,
+  "most_impactful_experiment": "grad_x_weight Top-50 at 10%",
+  "completion_time": "2025-08-26 22:12:45"
+}
+```
+
+2. **`top_K_weights_METRIC.csv`** - Ranked critical weights for further analysis:
+```csv
+rank,layer_name,weight_indices,sensitivity_value,layer_type
+1,"gpt_neox.embed_out.weight","(15, 530)",1.6660115718841553,"embedding"
+2,"gpt_neox.embed_out.weight","(13, 521)",1.5076959133148193,"embedding"
+3,"gpt_neox.layers.2.mlp.dense_4h_to_h.weight","(1793, 9501)",1.06950843334198,"mlp"
+```
+**Columns explained:**
+- **rank**: Global ranking (1 = most critical)
+- **layer_name**: Exact PyTorch parameter name for targeting
+- **weight_indices**: Specific tensor coordinates
+- **sensitivity_value**: Computed gradient×weight magnitude
+- **layer_type**: Category (embedding, attention, mlp) for analysis
+
+3. **`perturbation_results.csv`** - Experimental data for publication:
+```csv
+metric,topk,mask_ratio,weights_masked,baseline_ppl,perturbed_ppl,ppl_increase,ppl_ratio
+grad_x_weight,50,0.1,5,20.84,20.84,0.00,1.00
+grad_x_weight,50,0.25,12,20.84,20.84,0.00,1.00
+grad_x_weight,50,0.5,25,20.84,20.84,0.00,1.00
+```
+**Research applications:**
+- **mask_ratio**: Percentage of top-K weights zeroed out
+- **weights_masked**: Absolute number of weights affected
+- **ppl_ratio**: Relative performance degradation (1.0 = no change)
+- **Statistical analysis**: Use for significance testing and correlation studies
+
+#### **🚨 Logging & Troubleshooting:**
+
+##### **Console Output is Logged:**
+- All console output is automatically saved to: `outputs/critical_analysis_TIMESTAMP/analysis.log`
+- Includes full timestamps, parameter values, and error messages
+- Perfect for reproducing experiments and debugging issues
+
+##### **Common Output Patterns:**
+
+**✅ Successful Analysis:**
+- All phases complete with ✅ checkmarks
+- Baseline perplexity computed successfully
+- Top-K weights found and ranked
+- Files exported without errors
+
+**⚠️ Warning Signs:**
+```
+📊 Weights: 50,000 (reduced due to memory constraints)
+⚠️ Some layers skipped due to size
+```
+**Action**: Increase `--eval-limit` or use smaller model for full analysis
+
+**❌ Error Indicators:**
+```
+❌ CUDA out of memory
+❌ Model loading failed
+❌ No weights found above threshold
+```
+**Action**: Check GPU memory, model name, or adjust sensitivity thresholds
 
 1. **`experiment_summary.json`** - High-level results overview:
 ```json
