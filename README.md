@@ -21,14 +21,22 @@ A comprehensive research system for analyzing weight sensitivity in transformer 
 ## 🏗️ Complete Project Structure
 
 ```
+```
 critical_weight_analysis/
 ├── README.md                           # This comprehensive guide
 ├── INTEGRATION_GUIDE.md               # How to connect with other research projects
+├── MIGRATION_SUMMARY.md               # Shell → Python migration details
 ├── pyproject.toml                     # Python package configuration
 ├── setup.sh                          # Environment setup script
 ├── phase1_runner.py                   # Main CLI runner (primary interface)
+├── model_compatibility_tester.py      # 🆕 Model testing & validation (replaces test_models.sh)
+├── integration_validator.py           # 🆕 Integration testing (replaces test_integration.sh)
+├── llama_research_runner.py          # 🆕 LLaMA-optimized workflows (replaces llama_research.sh)
 ├── research_bridge.py                 # Integration with llm_research_project
-├── test_integration.sh                # Integration testing script
+├── deprecated/                        # Legacy shell scripts (archived)
+│   ├── test_models.sh                 # → model_compatibility_tester.py
+│   ├── test_integration.sh            # → integration_validator.py
+│   └── llama_research.sh              # → llama_research_runner.py
 ├── src/
 │   ├── data/
 │   │   └── dev_small.txt              # Evaluation text dataset
@@ -48,6 +56,7 @@ critical_weight_analysis/
 │   │   ├── experiment_summary.json    # High-level results summary
 │   │   ├── config.json                # Experiment configuration
 │   │   ├── perturbation_results.csv   # Detailed perturbation data
+```
 │   │   ├── top_K_weights_METRIC.csv   # Ranked critical weights
 │   │   └── sensitivity_statistics.json # Statistical summaries
 │   ├── logs/                          # Execution logs
@@ -288,6 +297,109 @@ git status
 # Test HuggingFace connection
 python -c "from huggingface_hub import HfApi; api = HfApi(); print('HF Connection:', api.whoami())"
 ```
+
+## 🛠️ New Python Analysis Modules
+
+### **🆕 Recently Added Python Tools** (Replaces Shell Scripts)
+
+The project now includes powerful Python modules that replace legacy shell scripts with enhanced functionality:
+
+#### **1. Model Compatibility Tester** (`model_compatibility_tester.py`)
+Test model compatibility across different architectures and sizes:
+
+```bash
+# Test all model categories
+python model_compatibility_tester.py --all
+
+# Quick development testing  
+python model_compatibility_tester.py --category small --quick
+
+# Test specific model family
+python model_compatibility_tester.py --category pythia --timeout 600
+
+# Test single model
+python model_compatibility_tester.py --model gpt2
+
+# Export results for CI/automation
+python model_compatibility_tester.py --category gpt2 --output ci_results/
+```
+
+**Features:**
+- ✅ **Structured Categories**: GPT-2, Pythia, OPT, Code models, Small models
+- 📊 **JSON Export**: Machine-readable results for automation
+- 🚀 **Quick Mode**: Minimal parameters for CI/testing  
+- 📈 **Progress Tracking**: Real-time status updates
+- 🔧 **Error Classification**: Timeout vs. error vs. success analysis
+
+#### **2. Integration Validator** (`integration_validator.py`)
+Validates critical weight discoveries through perturbation testing:
+
+```bash
+# Auto-validate using latest critical weight results
+python integration_validator.py --auto
+
+# Use specific results directory
+python integration_validator.py --from-results my_results/critical_analysis_20240827_143210/
+
+# Test specific critical layers manually
+python integration_validator.py --layer "gpt_neox.layers.2.mlp.dense_4h_to_h"
+
+# Test multiple layers with custom LLM project path
+python integration_validator.py --layers "gpt_neox.layers.2.mlp.dense_4h_to_h" "gpt_neox.layers.4.mlp.dense_4h_to_h" --llm-project "/path/to/llm_research_project"
+```
+
+**Features:**
+- 🔍 **Auto-Discovery**: Automatically finds latest critical weight results
+- 📈 **Correlation Analysis**: Validates sensitivity vs. perturbation impact
+- 📋 **Comprehensive Reports**: Markdown reports with statistical analysis
+- 🎯 **Flexible Testing**: Single layer, multiple layers, or auto-recommended
+- 🔗 **Pandas Integration**: Advanced CSV handling and data analysis
+
+#### **3. LLaMA Research Runner** (`llama_research_runner.py`)
+Specialized workflow for LLaMA model analysis with memory optimization:
+
+```bash
+# Quick LLaMA 2 7B analysis (discovery only)
+python llama_research_runner.py --model llama2-7b --discovery-only
+
+# Full analysis with both discovery and validation
+python llama_research_runner.py --model meta-llama/Llama-2-7b-hf --full-analysis
+
+# Quick test for development
+python llama_research_runner.py --model llama2-7b --quick
+
+# Chat model analysis
+python llama_research_runner.py --model llama2-7b-chat --discovery-only
+
+# Code-specialized LLaMA analysis
+python llama_research_runner.py --model code-llama-7b --discovery-only
+```
+
+**Features:**
+- 🦙 **Model Shortcuts**: Easy names (llama2-7b, llama3-8b, code-llama-7b)
+- 💾 **Memory Optimization**: Automatic parameter adjustment based on model size
+- 📊 **Progress Tracking**: Real-time updates with time estimates
+- 📄 **Specialized Reports**: LLaMA-specific insights and recommendations
+- 🔧 **Multi-Mode**: Discovery-only, validation-only, full-analysis, quick
+
+### **Migration from Shell Scripts**
+
+The new Python modules replace the following legacy shell scripts:
+
+| Old Shell Script | New Python Module | Status |
+|------------------|-------------------|---------|
+| `test_models.sh` | `model_compatibility_tester.py` | ✅ **Migrated** |
+| `test_integration.sh` | `integration_validator.py` | ✅ **Migrated** |
+| `llama_research.sh` | `llama_research_runner.py` | ✅ **Migrated** |
+
+**Benefits of Migration:**
+- 🔧 **Better Maintainability**: Structured code with classes and error handling
+- 📊 **Enhanced Features**: JSON export, correlation analysis, progress tracking
+- 🌍 **Cross-Platform**: Works on Windows, macOS, Linux
+- 🔗 **Integration Ready**: Can be imported as modules in other scripts
+- 📈 **Research Features**: Statistical analysis, automated reporting, memory optimization
+
+For detailed migration information, see: [`MIGRATION_SUMMARY.md`](MIGRATION_SUMMARY.md)
 
 ### **📋 Environment Variables Setup**
 
