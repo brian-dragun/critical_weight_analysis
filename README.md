@@ -112,7 +112,8 @@ uv venv .venv --python 3.12
 source .venv/bin/activate
 
 # Install dependencies with uv (10x faster than pip)
-uv pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu118
+# Using latest PyTorch 2.8.0 with CUDA 12.8 (latest supported)
+uv pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu128
 uv pip install transformers datasets accelerate
 uv pip install numpy pandas matplotlib seaborn jupyter
 uv pip install huggingface_hub tokenizers
@@ -128,7 +129,23 @@ python -c "import torch; print(f'PyTorch: {torch.__version__}'); print(f'CUDA Av
 python scripts/quick_test.py
 ```
 
-#### **4. Alternative: Use UV with pyproject.toml (Recommended for Reproducibility):**
+#### **4. CUDA Version Compatibility Check:**
+
+```bash
+# Check system CUDA version first
+nvidia-smi
+
+# The README uses CUDA 12.8, but you can adjust based on your system:
+# For CUDA 11.8: --index-url https://download.pytorch.org/whl/cu118
+# For CUDA 12.1: --index-url https://download.pytorch.org/whl/cu121  
+# For CUDA 12.6: --index-url https://download.pytorch.org/whl/cu126
+# For CUDA 12.8: --index-url https://download.pytorch.org/whl/cu128 (latest)
+# For CPU only:  --index-url https://download.pytorch.org/whl/cpu
+
+# Most Lambda Labs instances have CUDA 12.8, so cu128 is recommended
+```
+
+#### **5. Alternative: Use UV with pyproject.toml (Recommended for Reproducibility):**
 
 ```bash
 # After cloning the repository
@@ -146,7 +163,7 @@ uv pip install -r requirements.txt
 python scripts/quick_test.py
 ```
 
-#### **5. GPU & CUDA Verification:**
+#### **6. GPU & CUDA Verification:**
 
 ```bash
 # Comprehensive GPU check
@@ -165,7 +182,7 @@ if torch.cuda.is_available():
 python scripts/check_gpu.py
 ```
 
-#### **6. Performance Benefits of UV:**
+#### **7. Performance Benefits of UV:**
 
 ```bash
 # Speed comparison (for reference):
@@ -177,7 +194,7 @@ uv pip list  # View installed packages
 uv cache clean  # Clean package cache if needed
 ```
 
-#### **7. Generate Requirements for Future Deployments:**
+#### **8. Generate Requirements for Future Deployments:**
 
 ```bash
 # After installing all packages, export exact versions
