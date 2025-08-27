@@ -94,18 +94,70 @@ pip install -r setup/requirements.txt
 
 ## 🎮 Quick Start
 
-### Basic Usage
+### 🚀 Immediate Testing (2-3 minutes)
+
+#### System Validation
 ```bash
-# Run comprehensive enhanced analysis
+# Test basic functionality with GPT-2
+python phase1_runner_enhanced.py \
+    --model gpt2 \
+    --metric magnitude \
+    --topk 50 \
+    --max-samples 10 \
+    --save-plots \
+    --out-dir results/quick_validation/gpt2_test
+```
+
+#### Llama-3.1-8B Quick Analysis (5-10 minutes)
+```bash
+# Fast per-layer analysis with gradient-based sensitivity
+python phase1_runner_enhanced.py \
+    --model meta-llama/Llama-3.1-8B \
+    --metric grad_x_weight \
+    --topk 100 \
+    --mode per_layer \
+    --device cuda \
+    --max-samples 20 \
+    --save-plots \
+    --out-dir results/quick_research/llama31_8b_quick
+```
+
+#### Mistral-7B Quick Analysis (5-10 minutes)
+```bash
+# Fast per-layer analysis for comparison
+python phase1_runner_enhanced.py \
+    --model mistralai/Mistral-7B-v0.1 \
+    --metric grad_x_weight \
+    --topk 100 \
+    --mode per_layer \
+    --device cuda \
+    --max-samples 20 \
+    --save-plots \
+    --out-dir results/quick_research/mistral_7b_quick
+```
+
+### 🔬 Complete Research Workflows
+
+#### Advanced Perturbation Study
+```bash
+# Demonstrate perturbation effects with controls
 python phase1_runner_enhanced.py \
     --model gpt2 \
     --metric grad_x_weight \
     --topk 100 \
     --mode per_layer \
+    --perturb sign_flip \
+    --controls random_k,bottom_k \
+    --seeds 0,1,2 \
+    --device cuda \
+    --max-samples 15 \
     --save-plots \
-    --out-dir results/gpt2_analysis
+    --out-dir results/quick_research/perturbation_demo
+```
 
-# Advanced research workflow
+#### Complete PhD Research Protocol
+```bash
+# Full Llama analysis with all features
 python phase1_runner_enhanced.py \
     --model meta-llama/Llama-3.1-8B \
     --metric hutchinson_diag \
@@ -115,7 +167,8 @@ python phase1_runner_enhanced.py \
     --seeds 0,1,2 \
     --stability-check \
     --save-plots \
-    --out-dir outputs/llama31_8b_hutch_diag_k100
+    --out-dir outputs/llama31_8b_hutch_diag_k100 \
+    --verbose
 ```
 
 ### Example Workflows
@@ -168,7 +221,35 @@ for model in "meta-llama/Llama-3.1-8B" "mistralai/Mistral-7B-v0.1"; do
 done
 ```
 
-## 🔧 Command Line Options
+## � Output Structure
+
+Each experiment creates a comprehensive output directory with all necessary files for reproducibility:
+
+```
+outputs/llama31_8b_hutch_diag_k100/
+├── experiment_manifest.json          # Complete reproducibility info
+├── config.json                       # Runtime configuration
+├── sensitivity_stats.json            # Statistical summaries
+├── top_weights.csv                   # Top-K weight selections
+├── control_baselines.json            # Random/bottom-K controls
+├── perturbation_results.json         # Perturbation experiment results
+├── stability_results.json            # Jaccard stability analysis
+└── plots/                            # Comprehensive visualizations
+    ├── hutchinson_diag_k100_sensitivity_distribution.png
+    ├── hutchinson_diag_k100_layer_comparison.png
+    ├── hutchinson_diag_k100_sensitivity_heatmap.png
+    ├── hutchinson_diag_k100_perturbation_effects.png
+    └── hutchinson_diag_k100_stability_analysis.png
+```
+
+### Key Output Files:
+- **`experiment_manifest.json`**: Complete environment tracking, git state, configuration
+- **`top_weights.csv`**: Ranked weight importance scores with layer/parameter details
+- **`sensitivity_stats.json`**: Statistical summaries of sensitivity distributions
+- **`perturbation_results.json`**: Before/after performance metrics from perturbation tests
+- **`plots/`**: Publication-ready visualizations for research papers
+
+## �🔧 Command Line Options
 
 ### Core Parameters
 ```bash
@@ -223,14 +304,32 @@ critical_weight_analysis/
 ├── 📁 scripts/                     # Automation scripts
 │   ├── run_research_tests.sh       # Automated testing suite
 │   └── generate_research_report.py # Results aggregation
+├── 📁 docs/                        # All documentation & guides
+│   ├── RESEARCH_TESTING_GUIDE.md   # Comprehensive PhD research protocols
+│   ├── QUICK_RESEARCH_COMMANDS.md  # Ready-to-run command reference
+│   ├── USAGE_EXAMPLES.md           # Detailed examples and workflows
+│   ├── STRUCTURE.md                # Project organization details
+│   ├── INTEGRATION_GUIDE.md        # Integration with other projects
+│   ├── MODEL_GUIDE.md              # Model compatibility guide
+│   ├── LLAMA_RESEARCH_GUIDE.md     # LLaMA-specific research workflows
+│   ├── MIGRATION_SUMMARY.md        # Shell → Python migration guide
+│   ├── GITIGNORE_GUIDE.md          # Git configuration guide
+│   ├── README_ORIGINAL_BACKUP.md   # Original README backup
+│   └── research_summary.md         # Generated research reports
 ├── 📁 setup/                       # Installation and configuration
 │   ├── requirements.txt            # Python dependencies
 │   └── install_uv.sh              # UV package manager setup
-├── 📄 phase1_runner_enhanced.py    # Main research CLI
-├── 📚 RESEARCH_TESTING_GUIDE.md    # Comprehensive research protocol
-├── 📚 QUICK_RESEARCH_COMMANDS.md   # Quick reference commands
-└── 📚 README.md                    # This file
+├── � outputs/                     # ALL experiment results
+├── �📄 phase1_runner_enhanced.py    # Main research CLI
+└── � README.md                    # This comprehensive guide
 ```
+
+### Key Directories:
+- **`src/`**: Core analysis algorithms and utilities
+- **`docs/`**: Complete documentation suite for research workflows
+- **`scripts/`**: Automation tools for testing and report generation
+- **`outputs/`**: All experimental results with date organization
+- **`setup/`**: Installation and dependency management
 
 ## 🧪 Automated Testing
 
@@ -245,7 +344,23 @@ The system includes comprehensive automated testing for research validation:
 ./scripts/run_research_tests.sh llama        # Llama model analysis
 ./scripts/run_research_tests.sh mistral      # Mistral model analysis
 ./scripts/run_research_tests.sh perturbation # Perturbation experiments
+./scripts/run_research_tests.sh multi-metric # Multi-metric comparison
 ```
+
+### What the Automated Suite Does:
+
+1. **Prerequisites Check**: Validates CUDA availability and GPU memory
+2. **System Validation**: Tests basic functionality with small models
+3. **Model Analysis**: Comprehensive sensitivity analysis across architectures  
+4. **Perturbation Studies**: Performance degradation under weight modifications
+5. **Statistical Reports**: Automated summaries and visualizations
+
+### Expected Test Results:
+- ✅ **Compatibility**: Models load successfully on GPU
+- ✅ **Sensitivity Computation**: Completes without errors  
+- ✅ **Output Generation**: Creates manifest.json, top_weights.csv, sensitivity_stats.json
+- ⏱️ **Performance**: <2 minutes for small models, 5-15 minutes for large models
+- 📊 **Memory Usage**: <80% of available GPU memory
 
 ### Generated Test Outputs:
 - **Validation Results**: System compatibility and basic functionality
@@ -358,17 +473,62 @@ huggingface-cli login
 # Follow prompts to enter your token
 ```
 
+#### Gradient Computation Issues
+```bash
+# If Hutchinson diagonal fails, use first-order methods
+python phase1_runner_enhanced.py \
+    --model meta-llama/Llama-3.1-8B \
+    --metric grad_x_weight \
+    --out-dir results/gradient_safe/
+```
+
+#### Long Execution Times
+```bash
+# For faster iteration during development
+python phase1_runner_enhanced.py \
+    --model meta-llama/Llama-3.1-8B \
+    --metric magnitude \
+    --topk 100 \
+    --max-samples 20 \
+    --out-dir results/quick_test/
+```
+
 ### Performance Optimization
 - **Per-layer mode**: Faster than global ranking for large models
 - **Magnitude metric**: Fastest option, no gradient computation required
 - **Reduced samples**: Use `--max-samples 20` for faster iteration
 - **GPU optimization**: Ensure CUDA-enabled PyTorch installation
 
+### Time & Memory Estimates
+- **Quick tests**: 2-10 minutes
+- **Full per-layer analysis**: 10-30 minutes  
+- **Global ranking**: 30 minutes - 2 hours
+- **Llama-3.1-8B**: ~15-25GB GPU memory
+- **Mistral-7B**: ~12-20GB GPU memory
+
 ## 📚 Documentation
 
-- **[Research Testing Guide](RESEARCH_TESTING_GUIDE.md)**: Comprehensive research protocols
-- **[Quick Commands](QUICK_RESEARCH_COMMANDS.md)**: Ready-to-run command reference
-- **[Copilot Instructions](.github/copilot-instructions.md)**: Development guidelines
+For more detailed information, see the comprehensive guides in the `docs/` folder:
+
+### 📖 Quick References
+- **[Quick Commands Reference](docs/QUICK_RESEARCH_COMMANDS.md)**: Ready-to-run command examples
+- **[Usage Examples](docs/USAGE_EXAMPLES.md)**: Detailed examples and workflows
+- **[Documentation Index](docs/INDEX.md)**: Complete guide to all documentation
+
+### 🔬 Research Protocols  
+- **[Research Testing Guide](docs/RESEARCH_TESTING_GUIDE.md)**: Complete PhD research protocols for Llama & Mistral
+- **[Research Summary](docs/research_summary.md)**: Generated research reports and findings
+
+### 🏗️ Project Information
+- **[Project Structure](docs/STRUCTURE.md)**: Codebase organization and architecture
+- **[Integration Guide](docs/INTEGRATION_GUIDE.md)**: Integration with other projects
+- **[Model Guide](docs/MODEL_GUIDE.md)**: Model compatibility and requirements
+
+### Research-Specific Documentation
+- **Llama Research Protocol**: Step-by-step analysis procedures
+- **Multi-Model Comparison**: Cross-architecture studies
+- **Statistical Analysis**: Significance testing and validation
+- **Publication Preparation**: Research paper figure generation
 
 ## 🤝 Contributing
 
