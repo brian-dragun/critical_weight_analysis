@@ -20,7 +20,7 @@ A comprehensive research system for analyzing weight sensitivity in transformer 
 
 ## 🏗️ Complete Project Structure
 
-**📁 For detailed folder organization, see:** [`../STRUCTURE.md`](../STRUCTURE.md)
+**📁 For detailed folder organization, see:** [`docs/STRUCTURE.md`](docs/STRUCTURE.md)
 
 ```
 critical_weight_analysis/
@@ -30,6 +30,7 @@ critical_weight_analysis/
 │   ├── INTEGRATION_GUIDE.md           # How to connect with other research projects
 │   ├── LLAMA_RESEARCH_GUIDE.md        # LLaMA-specific workflows
 │   ├── MODEL_GUIDE.md                 # Model compatibility guide
+│   ├── STRUCTURE.md                   # Complete folder organization guide
 │   └── GITIGNORE_GUIDE.md             # Git configuration
 ├── 🔧 setup/                          # Setup & configuration files
 │   ├── setup.sh                      # Environment setup script
@@ -56,7 +57,7 @@ critical_weight_analysis/
 │   ├── integration_validator.py       # Integration testing
 │   ├── llama_research_runner.py      # LLaMA-optimized workflows
 │   └── research_bridge.py            # Research project integration
-└── 📄 STRUCTURE.md                   # Complete folder organization guide
+└── � README.md                      # Main project documentation (this file)
 ```
 
 ## � VM Environment Setup (Lambda Labs / Cloud GPU)
