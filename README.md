@@ -59,37 +59,312 @@ This system provides state-of-the-art tools for understanding which model weight
 - **Interactive Analysis**: Multiple plot types for comprehensive understanding
 - **Automated Report Generation**: Complete analysis summaries with plots
 
-## 📦 Installation
+## 📦 Installation & Setup
 
-### Requirements
-- Python 3.8+
-- PyTorch 2.0+ with CUDA support
-- Modern GPU (recommended for large models)
-- 16GB+ GPU memory for 7B+ models
+### System Requirements
 
-### Quick Setup with UV (Recommended)
+#### Hardware Requirements
+- **GPU**: Modern NVIDIA GPU with 8GB+ VRAM (16GB+ recommended for Llama-7B+ models)
+- **RAM**: 16GB+ system memory (32GB+ recommended for large models)
+- **Storage**: 50GB+ free space (models and cache can be large)
+- **CUDA**: CUDA 11.8+ or 12.x compatible GPU drivers
+
+#### Software Requirements
+- **OS**: Linux (Ubuntu 20.04+), macOS, or Windows with WSL2
+- **Python**: 3.8+ (3.11 or 3.12 recommended)
+- **CUDA Drivers**: Compatible with PyTorch CUDA version
+- **Git**: For repository management
+
+### 🚀 Lambda Labs VM Setup (Recommended - 5 minutes)
+
+If you're using Lambda Labs GPU cloud, use our optimized setup:
+
 ```bash
-# Install uv (modern Python package manager)
+# Quick setup for new Lambda Labs VM
+wget https://raw.githubusercontent.com/brian-dragun/critical_weight_analysis/master/setup/quick_vm_setup.sh
+chmod +x quick_vm_setup.sh
+./quick_vm_setup.sh
+
+# Authenticate with HuggingFace (required for Llama models)
+huggingface-cli login
+
+# Test your setup
+cd ~/nova/critical_weight_analysis
+python scripts/quick_test.py
+```
+
+**What this does:**
+- Updates system packages and installs build tools
+- Installs UV package manager (10x faster than pip)
+- Clones the repository to `~/nova/critical_weight_analysis`
+- Sets up Python 3.12 virtual environment
+- Installs PyTorch with CUDA support (tries 12.4, falls back to 12.1)
+- Installs all research dependencies including GPU monitoring tools
+- Configures shared cache directories in `/data/cache/`
+- Sets up environment variables automatically
+- Creates utility scripts for monitoring and testing
+
+### 🔧 Manual Setup (Full Control)
+
+#### Step 1: Install UV Package Manager (Recommended)
+```bash
+# Install UV (ultra-fast Python package manager)
 curl -LsSf https://astral.sh/uv/install.sh | sh
 source ~/.bashrc
 
-# Clone repository
+# Verify installation
+uv --version
+```
+
+#### Step 2: Clone Repository
+```bash
+# Create project directory
+mkdir -p ~/nova
+cd ~/nova
+
+# Clone the repository
 git clone https://github.com/brian-dragun/critical_weight_analysis.git
 cd critical_weight_analysis
+```
 
-# Install dependencies
-uv venv
+#### Step 3: Create Virtual Environment
+```bash
+# With UV (recommended - much faster)
+uv venv .venv --python 3.12
+source .venv/bin/activate
+
+# Or with standard Python
+python -m venv .venv
+source .venv/bin/activate  # Linux/macOS
+# .venv\Scripts\activate   # Windows
+```
+
+#### Step 4: Install PyTorch with CUDA
+```bash
+# For CUDA 12.x (most common)
+uv pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu124
+
+# For CUDA 11.8 (if you have older drivers)
+uv pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu118
+
+# For CPU only (not recommended for research)
+uv pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cpu
+```
+
+#### Step 5: Install Research Dependencies
+```bash
+# Install all dependencies from requirements file
+uv pip install -r setup/requirements.txt
+
+# Or install manually step by step:
+
+# Core ML libraries
+uv pip install transformers>=4.55.0 datasets>=3.1.0 accelerate>=1.2.0
+uv pip install huggingface_hub>=0.26.0 tokenizers>=0.20.0 safetensors>=0.4.0
+
+# Data science stack
+uv pip install numpy>=1.24.0 pandas>=2.0.0 matplotlib>=3.7.0 seaborn>=0.12.0 scipy>=1.11.0
+
+# GPU monitoring and system utilities
+uv pip install gputil>=1.4.0 psutil>=5.9.0 pynvml>=11.5.0
+
+# Research tracking tools
+uv pip install wandb>=0.17.0 tensorboard>=2.15.0
+
+# Development tools
+uv pip install jupyter>=1.0 ipython>=7.0 pytest>=6.0
+```
+
+#### Step 6: Install Project in Development Mode
+```bash
+# Install the critical_weight_analysis package
+uv pip install -e .
+```
+
+#### Step 7: Setup HuggingFace Authentication
+```bash
+# Required for accessing Llama models
+huggingface-cli login
+
+# Get your token from: https://huggingface.co/settings/tokens
+# You may need to request access to Llama models specifically
+```
+
+#### Step 8: Configure Environment Variables
+```bash
+# Add to your ~/.bashrc or ~/.zshrc for persistence
+export HF_HOME=/data/cache/hf
+export HF_HUB_CACHE=/data/cache/hf/hub
+export TRANSFORMERS_CACHE=/data/cache/hf/transformers
+export DATASETS_CACHE=/data/cache/hf/datasets
+export TORCH_HOME=/data/cache/torch
+export PIP_CACHE_DIR=/data/cache/pip
+export PATH="$HOME/.local/bin:$PATH"
+
+# For GPU optimization
+export CUDA_LAUNCH_BLOCKING=0
+export TORCH_CUDNN_V8_API_ENABLED=1
+
+# Apply changes
+source ~/.bashrc
+```
+
+### 🔍 Verify Installation
+
+#### Basic System Check
+```bash
+# Test Python and packages
+python -c "import torch; print(f'PyTorch: {torch.__version__}')"
+python -c "import torch; print(f'CUDA available: {torch.cuda.is_available()}')"
+python -c "import transformers; print(f'Transformers: {transformers.__version__}')"
+
+# Test GPU access
+python -c "
+import torch
+if torch.cuda.is_available():
+    print(f'GPU: {torch.cuda.get_device_name(0)}')
+    print(f'Memory: {torch.cuda.get_device_properties(0).total_memory / 1024**3:.1f} GB')
+else:
+    print('No GPU available')
+"
+```
+
+#### Comprehensive System Validation
+```bash
+# Run built-in diagnostics
+python scripts/check_gpu.py
+python scripts/quick_test.py
+
+# Monitor system resources
+python scripts/vm_monitor.py
+```
+
+#### Test Model Loading
+```bash
+# Quick model test (should complete in ~30 seconds)
+python -c "
+from src.models.loader import load_model
+print('Testing model loading...')
+model, tokenizer = load_model('gpt2', device='cuda')
+print(f'✅ Model loaded: {type(model).__name__}')
+print(f'✅ Device: {next(model.parameters()).device}')
+"
+```
+
+### 🛠️ Alternative Setup Methods
+
+#### Using Conda/Mamba
+```bash
+# Create conda environment
+conda create -n critical_weights python=3.12
+conda activate critical_weights
+
+# Install PyTorch via conda
+conda install pytorch torchvision torchaudio pytorch-cuda=12.1 -c pytorch -c nvidia
+
+# Install other dependencies via pip
+pip install -r setup/requirements.txt
+pip install -e .
+```
+
+#### Using Docker (Advanced)
+```bash
+# For NVIDIA GPU support
+docker run --gpus all --rm -it \
+  -v $(pwd):/workspace \
+  -v /data/cache:/data/cache \
+  pytorch/pytorch:2.0.1-cuda11.7-cudnn8-devel
+
+# Then inside container:
+cd /workspace
+pip install -r setup/requirements.txt
+pip install -e .
+```
+
+### 🚨 Troubleshooting Common Issues
+
+#### CUDA Issues
+```bash
+# Check CUDA compatibility
+nvidia-smi  # Should show driver version
+nvcc --version  # Should show CUDA toolkit version
+
+# Reinstall PyTorch if CUDA version mismatch
+uv pip uninstall torch torchvision torchaudio
+uv pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu121
+```
+
+#### Memory Issues
+```bash
+# Check available memory
+free -h  # System memory
+nvidia-smi  # GPU memory
+
+# Clear GPU cache
+python -c "import torch; torch.cuda.empty_cache()"
+
+# Reduce model size for testing
+python phase1_runner_enhanced.py --model gpt2 --max-samples 10
+```
+
+#### HuggingFace Access Issues
+```bash
+# Re-authenticate
+huggingface-cli logout
+huggingface-cli login
+
+# Test authentication
+huggingface-cli whoami
+
+# For Llama models, ensure you have access
+# Visit: https://huggingface.co/meta-llama/Llama-2-7b-hf
+```
+
+#### Package Conflicts
+```bash
+# Clean environment and reinstall
+deactivate
+rm -rf .venv
+uv venv .venv --python 3.12
 source .venv/bin/activate
 uv pip install -r setup/requirements.txt
 ```
 
-### Traditional Setup
+### 📊 Performance Optimization
+
+#### GPU Memory Optimization
 ```bash
-git clone https://github.com/brian-dragun/critical_weight_analysis.git
-cd critical_weight_analysis
-python -m venv .venv
-source .venv/bin/activate
-pip install -r setup/requirements.txt
+# Set memory fraction for PyTorch
+export PYTORCH_CUDA_ALLOC_CONF=max_split_size_mb:128
+
+# Use gradient checkpointing for large models
+python phase1_runner_enhanced.py --model ... --gradient-checkpointing
+```
+
+#### Cache Configuration
+```bash
+# Create cache directories
+sudo mkdir -p /data/cache/{hf,pip,torch}
+sudo chown -R $USER:$USER /data/cache
+
+# Verify cache setup
+ls -la /data/cache/
+```
+
+### 🔄 Setup Automation Scripts
+
+Your repository includes several automation scripts:
+
+- **`setup/setup.sh`**: Complete automated setup for Linux/macOS
+- **`setup/quick_vm_setup.sh`**: Rapid setup for new cloud VMs
+- **`scripts/check_gpu.py`**: GPU diagnostics and validation
+- **`scripts/quick_test.py`**: Comprehensive functionality testing
+- **`scripts/vm_monitor.py`**: Real-time resource monitoring
+
+Run the full automated setup:
+```bash
+chmod +x setup/setup.sh
+./setup/setup.sh
 ```
 
 ## 🎮 Quick Start
@@ -443,34 +718,77 @@ python scripts/generate_research_report.py --input-dirs results/ --output final_
 
 ## 🛠️ Troubleshooting
 
+### Quick Diagnostics
+```bash
+# Run comprehensive system check
+python scripts/check_gpu.py
+python scripts/quick_test.py
+python scripts/vm_monitor.py
+```
+
 ### Common Issues
 
 #### CUDA/GPU Problems
 ```bash
 # Check CUDA availability
 python -c "import torch; print('CUDA available:', torch.cuda.is_available())"
+python -c "import torch; print('PyTorch CUDA version:', torch.version.cuda)"
+nvidia-smi  # Check driver version
 
-# If CUDA unavailable, install CUDA-enabled PyTorch
+# If CUDA unavailable, reinstall PyTorch with correct CUDA version
+uv pip uninstall torch torchvision torchaudio
+# For CUDA 12.1
 uv pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu121
+# For CUDA 11.8  
+uv pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu118
 ```
 
 #### Memory Issues
 ```bash
+# Check system resources
+python scripts/vm_monitor.py
+
+# Clear GPU cache
+python -c "import torch; torch.cuda.empty_cache()"
+
 # Reduce memory usage for large models
 python phase1_runner_enhanced.py \
     --model meta-llama/Llama-3.1-8B \
     --metric magnitude \
     --topk 100 \
-    --max-samples 20 \
+    --max-samples 10 \
     --max-length 256 \
     --out-dir results/memory_optimized/
 ```
 
 #### Model Access Issues
 ```bash
-# For Llama models, ensure HuggingFace access
+# Re-authenticate with HuggingFace
+huggingface-cli logout
 huggingface-cli login
-# Follow prompts to enter your token
+
+# Test authentication
+huggingface-cli whoami
+
+# For Llama models, ensure you have access permission
+# Visit: https://huggingface.co/meta-llama/Llama-3.1-8B
+```
+
+#### Package Installation Issues
+```bash
+# Clean environment and reinstall
+deactivate
+rm -rf .venv
+uv venv .venv --python 3.12
+source .venv/bin/activate
+uv pip install -r setup/requirements.txt
+uv pip install -e .
+
+# Alternative: Use conda instead of pip
+conda create -n critical_weights python=3.12
+conda activate critical_weights
+conda install pytorch torchvision torchaudio pytorch-cuda=12.1 -c pytorch -c nvidia
+pip install -r setup/requirements.txt
 ```
 
 #### Gradient Computation Issues
@@ -480,6 +798,12 @@ python phase1_runner_enhanced.py \
     --model meta-llama/Llama-3.1-8B \
     --metric grad_x_weight \
     --out-dir results/gradient_safe/
+
+# Or use non-gradient methods
+python phase1_runner_enhanced.py \
+    --model meta-llama/Llama-3.1-8B \
+    --metric magnitude \
+    --out-dir results/magnitude_only/
 ```
 
 #### Long Execution Times
@@ -489,22 +813,71 @@ python phase1_runner_enhanced.py \
     --model meta-llama/Llama-3.1-8B \
     --metric magnitude \
     --topk 100 \
-    --max-samples 20 \
+    --max-samples 10 \
     --out-dir results/quick_test/
+
+# Use per-layer mode (faster than global for large models)
+python phase1_runner_enhanced.py \
+    --model meta-llama/Llama-3.1-8B \
+    --metric grad_x_weight \
+    --mode per_layer \
+    --topk 100 \
+    --max-samples 20
 ```
 
-### Performance Optimization
+#### Environment Variable Issues
+```bash
+# Ensure environment variables are set
+echo $HF_HOME
+echo $TRANSFORMERS_CACHE
+echo $TORCH_HOME
+
+# If not set, add to ~/.bashrc:
+cat >> ~/.bashrc <<'EOF'
+export HF_HOME=/data/cache/hf
+export TRANSFORMERS_CACHE=/data/cache/hf/transformers
+export TORCH_HOME=/data/cache/torch
+export PATH="$HOME/.local/bin:$PATH"
+EOF
+
+source ~/.bashrc
+```
+
+### Performance Optimization Tips
 - **Per-layer mode**: Faster than global ranking for large models
-- **Magnitude metric**: Fastest option, no gradient computation required
+- **Magnitude metric**: Fastest option, no gradient computation required  
 - **Reduced samples**: Use `--max-samples 20` for faster iteration
 - **GPU optimization**: Ensure CUDA-enabled PyTorch installation
+- **Cache directories**: Use shared cache in `/data/cache/` to save bandwidth
+
+### Setup Validation Commands
+```bash
+# Complete system validation
+python scripts/check_gpu.py       # GPU diagnostics
+python scripts/quick_test.py      # Functionality test
+python scripts/vm_monitor.py      # Resource monitoring
+
+# Test model loading
+python -c "from src.models.loader import load_model; model, tokenizer = load_model('gpt2'); print('✅ Model loading works')"
+
+# Test analysis pipeline
+python phase1_runner_enhanced.py --model gpt2 --metric magnitude --topk 10 --max-samples 5
+```
 
 ### Time & Memory Estimates
 - **Quick tests**: 2-10 minutes
 - **Full per-layer analysis**: 10-30 minutes  
 - **Global ranking**: 30 minutes - 2 hours
-- **Llama-3.1-8B**: ~15-25GB GPU memory
-- **Mistral-7B**: ~12-20GB GPU memory
+- **Llama-3.1-8B**: ~15-25GB GPU memory required
+- **Mistral-7B**: ~12-20GB GPU memory required
+- **Setup time**: 5 minutes (automated) to 15 minutes (manual)
+
+### Getting Help
+1. **Check logs**: Look in the generated output directories for error details
+2. **Run diagnostics**: Use `python scripts/check_gpu.py` and `python scripts/quick_test.py`
+3. **Monitor resources**: Use `python scripts/vm_monitor.py` to see system utilization
+4. **Consult documentation**: See `docs/LAMBDA_LABS_SETUP.md` for detailed setup procedures
+5. **Validate environment**: Ensure all dependencies are correctly installed
 
 ## 📚 Documentation
 
@@ -519,16 +892,23 @@ For more detailed information, see the comprehensive guides in the `docs/` folde
 - **[Research Testing Guide](docs/RESEARCH_TESTING_GUIDE.md)**: Complete PhD research protocols for Llama & Mistral
 - **[Research Summary](docs/research_summary.md)**: Generated research reports and findings
 
-### 🏗️ Project Information
+### 🛠️ Setup & Configuration
+- **[Lambda Labs Setup Guide](docs/LAMBDA_LABS_SETUP.md)**: Complete VM setup procedures and optimization
 - **[Project Structure](docs/STRUCTURE.md)**: Codebase organization and architecture
 - **[Integration Guide](docs/INTEGRATION_GUIDE.md)**: Integration with other projects
 - **[Model Guide](docs/MODEL_GUIDE.md)**: Model compatibility and requirements
 
-### Research-Specific Documentation
-- **Llama Research Protocol**: Step-by-step analysis procedures
-- **Multi-Model Comparison**: Cross-architecture studies
-- **Statistical Analysis**: Significance testing and validation
-- **Publication Preparation**: Research paper figure generation
+### 🚀 Advanced Topics
+- **Llama Research Protocol**: Step-by-step analysis procedures in Research Testing Guide
+- **Multi-Model Comparison**: Cross-architecture studies and best practices
+- **Statistical Analysis**: Significance testing and validation methodologies
+- **Publication Preparation**: Research paper figure generation and data export
+
+### 💡 Development Resources
+- **Setup Scripts**: Automated installation in `setup/` directory
+- **Monitoring Tools**: Resource monitoring scripts in `scripts/` directory
+- **Testing Suite**: Comprehensive validation tools and automated testing
+- **Environment Configuration**: Cache setup, GPU optimization, and dependency management
 
 ## 🤝 Contributing
 
