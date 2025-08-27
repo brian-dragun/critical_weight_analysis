@@ -306,6 +306,61 @@ python phase1_runner_enhanced.py \
     --out-dir results/gradient_safe/
 ```
 
+### Automated Testing Suite
+
+The repository includes an automated testing script (`scripts/run_research_tests.sh`) that systematically validates your setup and runs comprehensive experiments.
+
+#### **Usage:**
+```bash
+# Run all tests (comprehensive validation)
+./scripts/run_research_tests.sh
+
+# Run specific test phases
+./scripts/run_research_tests.sh validation    # System compatibility
+./scripts/run_research_tests.sh llama        # Llama model analysis
+./scripts/run_research_tests.sh mistral      # Mistral model analysis
+./scripts/run_research_tests.sh perturbation # Perturbation experiments
+./scripts/run_research_tests.sh multi-metric # Multi-metric comparison
+```
+
+#### **What the Automated Suite Does:**
+
+1. **Prerequisites Check**:
+   - Validates CUDA availability and GPU memory
+   - Confirms Python environment setup
+   - Checks for required model access
+
+2. **System Validation**:
+   - Tests GPT-2 baseline functionality
+   - Validates DialoGPT compatibility
+   - Ensures core features work correctly
+
+3. **Model Analysis**:
+   - Runs gradient-based sensitivity analysis
+   - Tests magnitude-based methods
+   - Validates perturbation experiments
+
+4. **Report Generation**:
+   - Creates comprehensive test summary
+   - Counts successful experiments
+   - Lists generated visualizations
+   - Provides next step recommendations
+
+#### **Generated Outputs:**
+```
+logs/
+├── research_tests.log           # Complete execution log
+├── test1_gpt2.log              # Individual test logs
+├── test2_llama_grad.log
+└── ...
+
+results/
+├── validation/                  # System validation results
+├── llama/                      # Llama analysis results
+├── mistral/                    # Mistral analysis results
+└── research_test_summary.md    # Automated summary report
+```
+
 ---
 
 ## 📋 Research Checklist
@@ -352,7 +407,110 @@ python phase1_runner_enhanced.py \
 
 ---
 
-## 📖 Example Research Workflow
+## � Research Report Generation
+
+### Automated Result Aggregation
+
+The system includes a comprehensive research report generator (`scripts/generate_research_report.py`) that automatically aggregates all experimental results and creates publication-ready summaries.
+
+#### **What the Report Generator Does:**
+
+1. **📁 Scans Results Directory**: Automatically finds all experiment manifests and result files
+2. **📊 Aggregates Data**: Combines sensitivity statistics, weight rankings, and experimental configurations  
+3. **📈 Creates Visualizations**: Generates summary plots showing experiment coverage and patterns
+4. **📄 Produces Reports**: Creates comprehensive markdown reports with all findings
+5. **🔍 Cross-Model Analysis**: Compares patterns across different models and metrics
+
+#### **Generated Outputs:**
+
+```bash
+# Run the report generator
+python scripts/generate_research_report.py --input-dirs results/ --output research_summary
+
+# Outputs created:
+# 📄 research_summary.md - Comprehensive text report
+# 📊 research_summary_plots/ - Directory with visualization files
+#   ├── experiment_overview.png - Models and metrics coverage
+#   ├── sensitivity_analysis.png - Cross-experiment patterns
+#   └── [additional plots based on available data]
+```
+
+#### **Report Contents:**
+
+- **Executive Summary**: Overview of experiments, models, and metrics tested
+- **Model Coverage**: List of all transformer models analyzed
+- **Metrics Comparison**: Summary of sensitivity metrics used
+- **Experiment Details**: Complete parameter listing for each experiment
+- **Key Findings**: Automated insights from cross-model analysis
+- **Statistical Summaries**: Mean, std, max sensitivity values across experiments
+- **Next Steps**: Recommendations for follow-up research
+
+#### **Command Options:**
+
+```bash
+# Basic usage
+python scripts/generate_research_report.py --input-dirs results/ --output research_summary
+
+# Specify output format
+python scripts/generate_research_report.py --input-dirs results/ --output research_summary --format md
+
+# Generate both markdown and attempt PDF (requires additional packages)
+python scripts/generate_research_report.py --input-dirs results/ --output research_summary --format both
+```
+
+#### **Example Generated Report Structure:**
+
+```markdown
+# Critical Weight Analysis Research Report
+
+**Generated:** 2025-08-27 23:20:05
+
+## Executive Summary
+This report summarizes 6 experiments conducted on critical weight analysis 
+across 3 different models using 3 sensitivity metrics.
+
+## Models Tested
+- microsoft/DialoGPT-small
+- meta-llama/Llama-3.1-8B  
+- gpt2
+
+## Metrics Used
+- magnitude
+- grad_x_weight
+- hutchinson_diag
+
+## Experiment Details
+### gpt2_grad_x_weight_k50
+- **Model:** gpt2
+- **Metric:** grad_x_weight
+- **Top-K:** 50
+- **Mode:** per_layer
+- **Samples:** 10
+- **Completed:** 2025-08-27T20:33:21.491814
+- **Mean Sensitivity:** 0.000124
+- **Max Sensitivity:** 0.045821
+
+[... additional experiments ...]
+
+## Key Findings
+1. **Model Coverage:** Successfully analyzed multiple transformer architectures
+2. **Metric Comparison:** Different sensitivity metrics show varying patterns
+3. **Reproducibility:** All experiments include full environment tracking
+4. **Visualization:** Publication-ready plots generated for each experiment
+```
+
+#### **Integration with Research Workflow:**
+
+The report generator is designed to be run at any time during your research to get an updated summary. It's particularly useful:
+
+- **Daily**: To track progress and ensure experiments are completing successfully
+- **Weekly**: To generate comprehensive summaries for advisor meetings
+- **Monthly**: To prepare progress reports and identify research gaps
+- **Pre-publication**: To compile all results for conference paper submission
+
+---
+
+## �📖 Example Research Workflow
 
 ```bash
 # Day 1: System validation
@@ -369,7 +527,10 @@ python phase1_runner_enhanced.py --model meta-llama/Llama-3.1-8B --metric grad_x
 python phase1_runner_enhanced.py --model mistralai/Mistral-7B-v0.1 --metric grad_x_weight --topk 300 --perturb sign_flip --controls random_k,bottom_k --seeds 0,1,2 --out-dir results/comparison/mistral/
 
 # Day 7: Analysis and visualization
-python scripts/generate_research_report.py --input-dirs results/ --output research_summary.pdf
+python scripts/generate_research_report.py --input-dirs results/ --output research_summary
+
+# Optional: Generate daily progress reports
+python scripts/generate_research_report.py --input-dirs results/ --output daily_progress_$(date +%Y%m%d)
 ```
 
 This systematic approach will provide comprehensive data for your PhD research on critical weight analysis in large language models.
