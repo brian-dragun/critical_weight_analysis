@@ -1,14 +1,16 @@
 #!/usr/bin/env bash
 # Fresh Lambda Labs setup for Critical Weight Analysis project
-# - Python 3.12 with uv package manager
-# - CUDA GPU wheels for PyTorch (cu124)
+# - Python 3.12 with uv package manager  
+# - CUDA GPU wheels for PyTorch (cu124/cu121 fallback)
 # - Caches under /data/cache (shared with other projects)
+# - Enhanced for Llama/Mistral research workflows
 set -euo pipefail
 
 # ---------- Config (edit if needed) ----------
 PYVER=3.12                   # change to 3.11 for max compatibility
 PROJECT_DIR=~/nova/critical_weight_analysis
 TORCH_INDEX_URL=https://download.pytorch.org/whl/cu124   # CUDA 12.x wheels
+TORCH_FALLBACK_URL=https://download.pytorch.org/whl/cu121 # Fallback for older drivers
 # --------------------------------------------
 
 echo "===> Setting up Critical Weight Analysis project"
@@ -64,26 +66,30 @@ echo "===> Installing PyTorch with CUDA support"
 uv pip uninstall -y torch torchvision torchaudio || true
 uv pip install --upgrade pip wheel setuptools
 
-# Install CUDA-enabled PyTorch
+# Install CUDA-enabled PyTorch with fallback
+echo "Trying CUDA 12.4 wheels..."
 if ! uv pip install torch torchvision torchaudio --index-url "$TORCH_INDEX_URL"; then
-  ARCH="$(uname -m)"
-  if [ "$ARCH" = "aarch64" ]; then
-    echo "----"
-    echo "aarch64 wheel install failed. On GH200/Grace, use NVIDIA's PyTorch container:"
-    echo "docker run --gpus all --rm -it \\"
-    echo "  -v /data/cache:/data/cache -v $PROJECT_DIR:/workspace \\"
-    echo "  -e HF_HOME=/data/cache/hf -e TRANSFORMERS_CACHE=/data/cache/hf/transformers \\"
-    echo "  -e PIP_CACHE_DIR=/data/cache/pip nvcr.io/nvidia/pytorch:24.07-py3 /bin/bash"
-    echo "----"
-    exit 2
-  else
-    echo "Failed to install CUDA wheels. Check driver and index URL."
-    exit 2
+  echo "CUDA 12.4 failed, trying CUDA 12.1 fallback..."
+  if ! uv pip install torch torchvision torchaudio --index-url "$TORCH_FALLBACK_URL"; then
+    ARCH="$(uname -m)"
+    if [ "$ARCH" = "aarch64" ]; then
+      echo "----"
+      echo "aarch64 wheel install failed. On GH200/Grace, use NVIDIA's PyTorch container:"
+      echo "docker run --gpus all --rm -it \\"
+      echo "  -v /data/cache:/data/cache -v $PROJECT_DIR:/workspace \\"
+      echo "  -e HF_HOME=/data/cache/hf -e TRANSFORMERS_CACHE=/data/cache/hf/transformers \\"
+      echo "  -e PIP_CACHE_DIR=/data/cache/pip nvcr.io/nvidia/pytorch:24.07-py3 /bin/bash"
+      echo "----"
+      exit 2
+    else
+      echo "Failed to install CUDA wheels. Check driver and index URL."
+      exit 2
+    fi
   fi
 fi
 
 echo "===> Installing critical weight analysis dependencies"
-# Core ML libraries
+# Core ML libraries (updated versions for better Llama/Mistral support)
 uv pip install \
   transformers>=4.40.0 \
   datasets>=2.14.0 \
@@ -100,6 +106,12 @@ uv pip install \
   matplotlib>=3.5.0 \
   seaborn>=0.11.0
 
+# GPU utilities and monitoring
+uv pip install \
+  gputil \
+  psutil \
+  pynvml
+
 # Utilities
 uv pip install \
   tqdm>=4.60.0 \
@@ -115,9 +127,24 @@ uv pip install \
   black>=22.0 \
   isort>=5.0
 
+# Research-specific tools
+uv pip install \
+  wandb \
+  tensorboard
+
 # Install the project in development mode
 echo "===> Installing critical_weight_analysis package"
 uv pip install -e .
+
+echo "===> Setting up HuggingFace authentication"
+# Check if HF token is already configured
+if ! huggingface-cli whoami >/dev/null 2>&1; then
+  echo "HuggingFace authentication needed for Llama models."
+  echo "Please run: huggingface-cli login"
+  echo "Get your token from: https://huggingface.co/settings/tokens"
+else
+  echo "✅ HuggingFace authentication already configured"
+fi
 
 echo "===> GPU and environment validation"
 python - <<'PY'
@@ -381,6 +408,34 @@ chmod +x scripts/*.py
 echo "===> Final setup validation"
 python scripts/quick_test.py
 
+echo "===> Setting up Git configuration (if needed)"
+if ! git config --global user.name >/dev/null 2>&1; then
+  echo "Git user not configured. Please run:"
+  echo "  git config --global user.name 'Your Name'"
+  echo "  git config --global user.email 'your.email@example.com'"
+else
+  echo "✅ Git already configured for $(git config --global user.name)"
+fi
+
+# Add environment variables to bashrc if not present
+echo "===> Adding environment variables to ~/.bashrc"
+cat >> ~/.bashrc <<'BASHRC'
+
+# Critical Weight Analysis Environment
+export HF_HOME=/data/cache/hf
+export HF_HUB_CACHE=/data/cache/hf/hub
+export TRANSFORMERS_CACHE=/data/cache/hf/transformers
+export DATASETS_CACHE=/data/cache/hf/datasets
+export TORCH_HOME=/data/cache/torch
+export PIP_CACHE_DIR=/data/cache/pip
+export PATH="$HOME/.local/bin:$PATH"
+
+# CUDA optimization
+export CUDA_LAUNCH_BLOCKING=0
+export TORCH_CUDNN_V8_API_ENABLED=1
+
+BASHRC
+
 cat <<'TXT'
 
 🎉 Critical Weight Analysis setup complete!
@@ -393,26 +448,41 @@ Project structure:
 │   └── data/dev_small.txt    # Evaluation texts
 ├── scripts/
 │   ├── check_gpu.py          # GPU diagnostics
-│   └── quick_test.py         # Functionality test
+│   ├── quick_test.py         # Functionality test
+│   ├── run_research_tests.sh # Automated testing suite
+│   └── generate_research_report.py # Results aggregation
+├── docs/                     # Comprehensive documentation
 └── outputs/                  # Results and logs
 
 Next steps:
-1) Test your environment:
+1) Reload environment:
+   source ~/.bashrc
+
+2) Test your environment:
    python scripts/check_gpu.py
    python scripts/quick_test.py
 
-2) Start research notebook:
-   jupyter lab notebooks/
+3) Setup HuggingFace (if not done):
+   huggingface-cli login
 
-3) Run quick sensitivity analysis:
-   python -c "
-   from src.models.loader import load_model
-   from src.eval.perplexity import compute_perplexity
-   model, tokenizer = load_model('gpt2')
-   texts = open('src/data/dev_small.txt').read().splitlines()[:5]
-   ppl = compute_perplexity(model, tokenizer, texts)
-   print(f'Baseline perplexity: {ppl:.2f}')
-   "
+4) Run quick validation:
+   python phase1_runner_enhanced.py --model gpt2 --metric magnitude --topk 10 --max-samples 5
 
-Happy researching! 🔬
+5) Start Llama research:
+   python phase1_runner_enhanced.py \
+     --model meta-llama/Llama-3.1-8B \
+     --metric grad_x_weight \
+     --topk 100 \
+     --mode per_layer \
+     --max-samples 20 \
+     --save-plots
+
+6) Run automated testing suite:
+   ./scripts/run_research_tests.sh validation
+   ./scripts/run_research_tests.sh llama
+
+7) Access comprehensive documentation:
+   cat docs/INDEX.md
+
+Happy researching! 🔬 🚀
 TXT
