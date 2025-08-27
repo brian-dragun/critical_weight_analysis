@@ -6,9 +6,18 @@ Provides functions to compute perplexity on text datasets for model evaluation.
 
 import math
 import logging
-from typing import List, Optional, Union
+from typing import List, Optional, Union, Dict
 import torch
-from transformers import PreTrainedModel, PreTrainedTokenizer
+
+try:
+    from transformers import PreTrainedModel, PreTrainedTokenizer
+    HAS_TRANSFORMERS = True
+except ImportError:
+    HAS_TRANSFORMERS = False
+    class PreTrainedModel:
+        pass
+    class PreTrainedTokenizer:
+        pass
 
 logger = logging.getLogger(__name__)
 
@@ -20,7 +29,8 @@ def compute_perplexity(
     max_length: int = 512,
     batch_size: int = 1,
     device: Optional[torch.device] = None,
-) -> float:
+    return_details: bool = False,
+) -> Union[float, Dict[str, float]]:
     """
     Compute perplexity of a model on a list of texts.
     
@@ -31,14 +41,21 @@ def compute_perplexity(
         max_length: Maximum sequence length for tokenization
         batch_size: Batch size for evaluation (1 for individual texts)
         device: Target device (inferred from model if None)
+        return_details: If True, return dictionary with detailed metrics
         
     Returns:
-        Perplexity score (exp(average cross-entropy loss))
+        Perplexity score (exp(average cross-entropy loss)) or detailed metrics dict
         
     Examples:
         >>> texts = ["The quick brown fox", "jumps over the lazy dog"]
         >>> ppl = compute_perplexity(model, tokenizer, texts)
         >>> print(f"Perplexity: {ppl:.2f}")
+        >>> 
+        >>> # Get detailed metrics
+        >>> metrics = compute_perplexity(model, tokenizer, texts, return_details=True)
+        >>> print(f"Perplexity: {metrics['perplexity']:.2f}")
+        >>> print(f"NLL: {metrics['nll']:.4f}")
+        >>> print(f"Token accuracy: {metrics['token_accuracy']:.3f}")
     """
     if device is None:
         device = next(model.parameters()).device
@@ -46,6 +63,8 @@ def compute_perplexity(
     model.eval()
     total_loss = 0.0
     total_tokens = 0
+    correct_predictions = 0
+    total_predictions = 0
     
     logger.info(f"Computing perplexity on {len(texts)} texts")
     
@@ -87,19 +106,56 @@ def compute_perplexity(
             total_loss += outputs.loss.item() * valid_tokens
             total_tokens += valid_tokens
             
+            # Compute token accuracy if return_details is True
+            if return_details:
+                # Get predictions and compare with labels
+                logits = outputs.logits
+                # Shift logits and labels for next-token prediction
+                shift_logits = logits[..., :-1, :].contiguous()
+                shift_labels = labels[..., 1:].contiguous()
+                shift_attention = attention_mask[..., 1:].contiguous()
+                
+                # Get predictions
+                predictions = torch.argmax(shift_logits, dim=-1)
+                
+                # Count correct predictions (only where attention mask is 1)
+                mask = shift_attention == 1
+                correct = (predictions == shift_labels) & mask
+                correct_predictions += correct.sum().item()
+                total_predictions += mask.sum().item()
+            
             if (i + 1) % 50 == 0:
                 current_ppl = math.exp(total_loss / max(total_tokens, 1))
                 logger.debug(f"Processed {i+1}/{len(texts)} texts, current PPL: {current_ppl:.2f}")
     
     if total_tokens == 0:
         logger.warning("No valid tokens found in texts")
+        if return_details:
+            return {
+                "perplexity": float('inf'),
+                "nll": float('inf'),
+                "token_accuracy": 0.0,
+                "total_tokens": 0,
+                "total_predictions": 0
+            }
         return float('inf')
     
     # Compute average loss and perplexity
     avg_loss = total_loss / total_tokens
     perplexity = math.exp(avg_loss)
     
-    logger.info(f"Perplexity: {perplexity:.4f} (avg loss: {avg_loss:.4f}, tokens: {total_tokens})")
+    logger.info(f"Computed perplexity: {perplexity:.2f} on {total_tokens:,} tokens")
+    
+    if return_details:
+        token_accuracy = correct_predictions / max(total_predictions, 1)
+        return {
+            "perplexity": perplexity,
+            "nll": avg_loss,  # Negative log-likelihood
+            "token_accuracy": token_accuracy,
+            "total_tokens": total_tokens,
+            "total_predictions": total_predictions,
+            "correct_predictions": correct_predictions
+        }
     
     return perplexity
 
