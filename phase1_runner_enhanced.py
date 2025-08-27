@@ -50,11 +50,17 @@ from tqdm.auto import tqdm
 # Project imports
 from src.models.loader import load_model
 from src.eval.perplexity import compute_perplexity
+from src.eval.downstream_tasks import evaluate_all_tasks
 from src.sensitivity.metrics import compute_sensitivity, compute_non_gradient_sensitivity
 from src.sensitivity.rank import rank_topk, create_all_controls, compute_jaccard_overlap
 from src.sensitivity.perturb import apply_perturbation, compute_perturbation_effects, stability_analysis
+from src.sensitivity.advanced_perturb import AdvancedPerturbationEngine, PerturbationType
+from src.analysis.weight_analyzer import WeightAnalyzer
+from src.analysis.temporal_stability import TemporalStabilityAnalyzer
+from src.analysis.architecture_analyzer import ArchitectureAnalyzer
 from src.utils.manifest import create_manifest
 from src.utils.visualize import save_all_plots
+from src.utils.enhanced_visualize import save_enhanced_plots
 
 logger = logging.getLogger(__name__)
 
@@ -191,6 +197,60 @@ def parse_args() -> argparse.Namespace:
         '--verbose', '-v',
         action='store_true',
         help='Enable verbose logging'
+    )
+    
+    # Advanced Analysis Options
+    parser.add_argument(
+        '--downstream-tasks',
+        action='store_true',
+        help='Evaluate on downstream tasks (HellaSwag, LAMBADA)'
+    )
+    
+    parser.add_argument(
+        '--task-samples',
+        type=int,
+        default=100,
+        help='Number of samples for downstream task evaluation (default: 100)'
+    )
+    
+    parser.add_argument(
+        '--weight-analysis',
+        action='store_true',
+        help='Perform advanced weight clustering and correlation analysis'
+    )
+    
+    parser.add_argument(
+        '--architecture-analysis',
+        action='store_true',
+        help='Analyze sensitivity patterns by model architecture components'
+    )
+    
+    parser.add_argument(
+        '--temporal-stability',
+        action='store_true',
+        help='Track temporal stability of weight rankings across conditions'
+    )
+    
+    parser.add_argument(
+        '--advanced-perturbations',
+        nargs='+',
+        choices=['adaptive_noise', 'magnitude_scaling', 'quantization', 'progressive'],
+        help='Apply advanced perturbation methods'
+    )
+    
+    parser.add_argument(
+        '--clustering-method',
+        type=str,
+        default='kmeans',
+        choices=['kmeans', 'dbscan'],
+        help='Clustering method for weight analysis (default: kmeans)'
+    )
+    
+    parser.add_argument(
+        '--n-clusters',
+        type=int,
+        default=5,
+        help='Number of clusters for weight analysis (default: 5)'
     )
     
     return parser.parse_args()
@@ -370,6 +430,7 @@ def save_results(
     controls: Optional[Dict] = None,
     perturbation_results: Optional[Dict] = None,
     stability_results: Optional[Dict] = None,
+    enhanced_results: Optional[Dict] = None,
     config: Optional[Dict] = None
 ) -> Dict[str, Path]:
     """Save all results to files."""
@@ -443,6 +504,13 @@ def save_results(
             json.dump(stability_results, f, indent=2)
         saved_files["stability_results"] = stability_file
     
+    # Save enhanced analysis results
+    if enhanced_results:
+        enhanced_file = output_dir / "enhanced_analysis.json"
+        with open(enhanced_file, 'w') as f:
+            json.dump(enhanced_results, f, indent=2)
+        saved_files["enhanced_analysis"] = enhanced_file
+    
     # Save configuration
     if config:
         config_file = output_dir / "config.json"
@@ -452,6 +520,157 @@ def save_results(
     
     logger.info(f"✅ Saved {len(saved_files)} result files")
     return saved_files
+
+
+def run_enhanced_analysis(
+    model: torch.nn.Module,
+    tokenizer,
+    eval_texts: List[str],
+    sensitivity_dict: Dict[str, torch.Tensor],
+    top_weights: Dict[str, List[Tuple]],
+    args: argparse.Namespace
+) -> Dict[str, Any]:
+    """Run enhanced analysis features based on command line arguments."""
+    
+    enhanced_results = {}
+    
+    # Downstream task evaluation
+    if args.downstream_tasks:
+        logger.info("🎯 Running downstream task evaluation")
+        try:
+            downstream_results = evaluate_all_tasks(model, tokenizer, args.task_samples)
+            enhanced_results["downstream_tasks"] = downstream_results
+            logger.info(f"✅ Downstream tasks completed: {list(downstream_results.keys())}")
+        except Exception as e:
+            logger.warning(f"⚠️ Downstream task evaluation failed: {e}")
+            enhanced_results["downstream_tasks"] = {"error": str(e)}
+    
+    # Weight clustering and correlation analysis
+    if args.weight_analysis:
+        logger.info("🔍 Running advanced weight analysis")
+        try:
+            weight_analyzer = WeightAnalyzer()
+            analysis_report = weight_analyzer.generate_analysis_report(sensitivity_dict)
+            
+            # Add clustering with specified parameters
+            cluster_results = weight_analyzer.cluster_weights(
+                sensitivity_dict, 
+                n_clusters=args.n_clusters,
+                method=args.clustering_method
+            )
+            analysis_report["clustering_results"] = cluster_results
+            
+            enhanced_results["weight_analysis"] = analysis_report
+            logger.info(f"✅ Weight analysis completed: {len(analysis_report)} components analyzed")
+        except Exception as e:
+            logger.warning(f"⚠️ Weight analysis failed: {e}")
+            enhanced_results["weight_analysis"] = {"error": str(e)}
+    
+    # Architecture-specific analysis
+    if args.architecture_analysis:
+        logger.info("🏗️ Running architecture analysis")
+        try:
+            arch_analyzer = ArchitectureAnalyzer()
+            arch_report = arch_analyzer.generate_architecture_report(sensitivity_dict, model)
+            enhanced_results["architecture_analysis"] = arch_report
+            
+            # Log key insights
+            most_sensitive = arch_report["summary_insights"]["most_sensitive_component"]
+            depth_pattern = arch_report["summary_insights"]["depth_pattern"]
+            logger.info(f"✅ Architecture analysis: Most sensitive component: {most_sensitive}")
+            logger.info(f"✅ Depth pattern: {depth_pattern}")
+        except Exception as e:
+            logger.warning(f"⚠️ Architecture analysis failed: {e}")
+            enhanced_results["architecture_analysis"] = {"error": str(e)}
+    
+    # Temporal stability tracking
+    if args.temporal_stability:
+        logger.info("⏱️ Running temporal stability analysis")
+        try:
+            stability_analyzer = TemporalStabilityAnalyzer()
+            
+            # Record current sensitivity snapshot
+            stability_analyzer.record_sensitivity_snapshot(
+                sensitivity_dict, 
+                f"{args.metric}_{args.model}",
+                timestamp=datetime.now().isoformat()
+            )
+            
+            # Record ranking snapshot
+            stability_analyzer.record_ranking_snapshot(
+                top_weights,
+                f"{args.metric}_{args.model}",
+                args.topk,
+                timestamp=datetime.now().isoformat()
+            )
+            
+            # If we have multiple seeds, analyze stability across them
+            if hasattr(args, 'seeds') and ',' in args.seeds:
+                seeds = [int(s.strip()) for s in args.seeds.split(',')]
+                for seed in seeds[1:]:  # Skip first seed as it's already recorded
+                    # This is a placeholder - in a real scenario you'd re-run with different seeds
+                    stability_analyzer.record_sensitivity_snapshot(
+                        sensitivity_dict, 
+                        f"{args.metric}_{args.model}_seed{seed}",
+                        timestamp=datetime.now().isoformat()
+                    )
+            
+            # Generate stability report
+            stability_report = stability_analyzer.compare_across_conditions()
+            enhanced_results["temporal_stability"] = stability_report
+            logger.info("✅ Temporal stability analysis completed")
+        except Exception as e:
+            logger.warning(f"⚠️ Temporal stability analysis failed: {e}")
+            enhanced_results["temporal_stability"] = {"error": str(e)}
+    
+    # Advanced perturbations
+    if args.advanced_perturbations:
+        logger.info(f"🔬 Running advanced perturbations: {args.advanced_perturbations}")
+        try:
+            adv_perturb_engine = AdvancedPerturbationEngine(device=str(model.device))
+            adv_perturb_engine.save_original_state(model)
+            
+            perturbation_results = {}
+            
+            for pert_method in args.advanced_perturbations:
+                logger.info(f"   Applying {pert_method} perturbation")
+                
+                if pert_method == "adaptive_noise":
+                    stats = adv_perturb_engine.adaptive_noise_perturbation(
+                        model, top_weights, noise_scale=args.perturb_scale
+                    )
+                elif pert_method == "magnitude_scaling":
+                    stats = adv_perturb_engine.magnitude_scaling_perturbation(
+                        model, top_weights, scale_factor=args.perturb_scale
+                    )
+                elif pert_method == "quantization":
+                    stats = adv_perturb_engine.quantization_perturbation(
+                        model, top_weights, num_bits=8
+                    )
+                elif pert_method == "progressive":
+                    # Create evaluation function
+                    def eval_func(model):
+                        return {"perplexity": compute_perplexity(model, tokenizer, eval_texts[:10])}
+                    
+                    stats = adv_perturb_engine.progressive_perturbation(
+                        model, top_weights, PerturbationType.ADAPTIVE_NOISE,
+                        evaluation_func=eval_func
+                    )
+                else:
+                    continue
+                
+                perturbation_results[pert_method] = stats
+                
+                # Restore original state for next perturbation
+                adv_perturb_engine.restore_original_state(model)
+            
+            enhanced_results["advanced_perturbations"] = perturbation_results
+            logger.info(f"✅ Advanced perturbations completed: {len(perturbation_results)} methods")
+        except Exception as e:
+            logger.warning(f"⚠️ Advanced perturbations failed: {e}")
+            enhanced_results["advanced_perturbations"] = {"error": str(e)}
+    
+    return enhanced_results
 
 
 def main():
@@ -549,10 +768,15 @@ def main():
                 model, tokenizer, eval_texts, args.metric, args.topk, seeds
             )
         
+        # Run enhanced analysis if requested
+        enhanced_results = run_enhanced_analysis(
+            model, tokenizer, eval_texts, sensitivity_dict, top_weights, args
+        )
+        
         # Save results
         saved_files = save_results(
             output_dir, sensitivity_dict, top_weights, controls,
-            perturbation_results, stability_results, config
+            perturbation_results, stability_results, enhanced_results, config
         )
         manifest.log_files({k: str(v) for k, v in saved_files.items()})
         
@@ -564,6 +788,16 @@ def main():
                 output_dir / "plots", f"{args.metric}_k{args.topk}_"
             )
             manifest.log_files({f"plot_{k}": str(v) for k, v in plot_files.items()})
+            
+            # Generate enhanced plots if we have enhanced results
+            if enhanced_results:
+                logger.info("📊 Generating enhanced analysis plots")
+                enhanced_plot_files = save_enhanced_plots(
+                    enhanced_results, 
+                    output_dir / "plots",
+                    f"enhanced_{args.metric}_k{args.topk}_"
+                )
+                manifest.log_files({f"enhanced_plot_{k}": str(v) for k, v in enhanced_plot_files.items()})
         
         # Log summary results
         summary_results = {

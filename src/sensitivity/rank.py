@@ -10,6 +10,7 @@ from typing import Dict, List, Tuple, Optional
 import torch
 import pandas as pd
 import numpy as np
+from tqdm.auto import tqdm
 
 logger = logging.getLogger(__name__)
 
@@ -52,7 +53,8 @@ def _rank_topk_per_layer(
     """Rank top-K weights within each layer separately."""
     topk_dict = {}
     
-    for param_name, sens_tensor in sensitivity_dict.items():
+    logger.info(f"🏆 Ranking top-{k} weights per layer...")
+    for param_name, sens_tensor in tqdm(sensitivity_dict.items(), desc="Ranking layers"):
         # Flatten tensor and get top-k indices
         flat_sens = sens_tensor.flatten()
         values, indices = torch.topk(flat_sens, k=min(k, flat_sens.numel()), largest=True)
@@ -82,7 +84,8 @@ def _rank_topk_global(
     # Collect all weights with their scores
     all_weights = []
     
-    for param_name, sens_tensor in sensitivity_dict.items():
+    logger.info("🔍 Collecting weights from all layers...")
+    for param_name, sens_tensor in tqdm(sensitivity_dict.items(), desc="Processing layers"):
         flat_sens = sens_tensor.flatten()
         
         for flat_idx, value in enumerate(flat_sens):
@@ -91,6 +94,7 @@ def _rank_topk_global(
             
             all_weights.append((param_name, multi_idx_tuple, float(value)))
     
+    logger.info(f"📊 Sorting {len(all_weights):,} weights globally...")
     # Sort globally by sensitivity
     all_weights.sort(key=lambda x: x[2], reverse=True)
     

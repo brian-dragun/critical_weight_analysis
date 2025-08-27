@@ -7,6 +7,7 @@ Implements various sensitivity measures including gradient-based and Hessian app
 import logging
 from typing import Dict, List, Optional, Tuple, Union
 import torch
+from tqdm.auto import tqdm
 
 try:
     from transformers import PreTrainedModel, PreTrainedTokenizer
@@ -309,7 +310,11 @@ def compute_sensitivity(
     total_loss = 0.0
     num_batches = 0
     
-    for i in range(0, len(valid_texts), batch_size):
+    # Add progress bar for batch processing
+    batch_range = range(0, len(valid_texts), batch_size)
+    progress_bar = tqdm(batch_range, desc=f"Processing {len(valid_texts)} texts")
+    
+    for i in progress_bar:
         batch_texts = valid_texts[i:i + batch_size]
         
         # Tokenize batch
@@ -346,6 +351,9 @@ def compute_sensitivity(
         total_loss += loss.item()
         num_batches += 1
         
+        # Update progress bar with current loss
+        progress_bar.set_postfix({'loss': f'{loss.item():.4f}', 'avg_loss': f'{total_loss/num_batches:.4f}'})
+        
         logger.debug(f"Processed batch {num_batches}, loss: {loss.item():.4f}")
     
     avg_loss = total_loss / num_batches
@@ -354,20 +362,27 @@ def compute_sensitivity(
     # Compute sensitivity metrics
     sensitivity_dict = {}
     
-    for name, param in model.named_parameters():
-        if param.grad is None or param.dim() < 2:
-            continue
-            
-        # Filter by layers if specified
-        if layers is not None:
+    # Get parameters to process
+    params_to_process = [(name, param) for name, param in model.named_parameters() 
+                        if param.grad is not None and param.dim() >= 2]
+    
+    # Filter by layers if specified
+    if layers is not None:
+        filtered_params = []
+        for name, param in params_to_process:
             layer_match = False
             for layer_idx in layers:
                 if f".{layer_idx}." in name or f"layers.{layer_idx}" in name:
                     layer_match = True
                     break
-            if not layer_match:
-                continue
-        
+            if layer_match:
+                filtered_params.append((name, param))
+        params_to_process = filtered_params
+    
+    logger.info(f"📊 Computing sensitivity for {len(params_to_process)} parameters...")
+    
+    # Process parameters with progress bar
+    for name, param in tqdm(params_to_process, desc="Computing sensitivity"):
         # Compute sensitivity based on metric
         if metric == "grad_x_weight":
             sensitivity = torch.abs(param.grad.detach() * param.detach())
