@@ -20,50 +20,43 @@ A comprehensive research system for analyzing weight sensitivity in transformer 
 
 ## 🏗️ Complete Project Structure
 
-```
+**📁 For detailed folder organization, see:** [`../STRUCTURE.md`](../STRUCTURE.md)
+
 ```
 critical_weight_analysis/
-├── README.md                           # This comprehensive guide
-├── INTEGRATION_GUIDE.md               # How to connect with other research projects
-├── MIGRATION_SUMMARY.md               # Shell → Python migration details
-├── pyproject.toml                     # Python package configuration
-├── setup.sh                          # Environment setup script
-├── phase1_runner.py                   # Main CLI runner (primary interface)
-├── model_compatibility_tester.py      # 🆕 Model testing & validation (replaces test_models.sh)
-├── integration_validator.py           # 🆕 Integration testing (replaces test_integration.sh)
-├── llama_research_runner.py          # 🆕 LLaMA-optimized workflows (replaces llama_research.sh)
-├── research_bridge.py                 # Integration with llm_research_project
-├── deprecated/                        # Legacy shell scripts (archived)
-│   ├── test_models.sh                 # → model_compatibility_tester.py
-│   ├── test_integration.sh            # → integration_validator.py
-│   └── llama_research.sh              # → llama_research_runner.py
-├── src/
-│   ├── data/
-│   │   └── dev_small.txt              # Evaluation text dataset
-│   ├── models/
-│   │   └── loader.py                  # Model loading with device management
-│   ├── sensitivity/
-│   │   ├── metrics.py                 # Gradient-based sensitivity computation
-│   │   ├── rank.py                    # Top-K weight ranking algorithms
-│   │   └── mask.py                    # Weight masking and intervention tools
-│   ├── eval/
-│   │   └── perplexity.py              # Individual-text perplexity evaluation
-│   └── utils/                         # Logging, seeding, device utilities
-├── notebooks/
-│   └── sensitivity_analysis_research.ipynb  # Complete research notebook
-├── outputs/                           # All experiment results
-│   ├── critical_analysis_YYYYMMDD_HHMMSS/   # Timestamped result directories
-│   │   ├── experiment_summary.json    # High-level results summary
-│   │   ├── config.json                # Experiment configuration
-│   │   ├── perturbation_results.csv   # Detailed perturbation data
-```
-│   │   ├── top_K_weights_METRIC.csv   # Ranked critical weights
-│   │   └── sensitivity_statistics.json # Statistical summaries
-│   ├── logs/                          # Execution logs
-│   └── figs/                          # Generated visualizations
-└── scripts/                           # Utility scripts
-    ├── check_gpu.py                   # GPU diagnostics
-    └── quick_test.py                  # Functionality validation
+├── 📋 docs/                           # All documentation & guides (THIS FOLDER)
+│   ├── README.md                      # This comprehensive guide
+│   ├── MIGRATION_SUMMARY.md           # Shell → Python migration details
+│   ├── INTEGRATION_GUIDE.md           # How to connect with other research projects
+│   ├── LLAMA_RESEARCH_GUIDE.md        # LLaMA-specific workflows
+│   ├── MODEL_GUIDE.md                 # Model compatibility guide
+│   └── GITIGNORE_GUIDE.md             # Git configuration
+├── 🔧 setup/                          # Setup & configuration files
+│   ├── setup.sh                      # Environment setup script
+│   ├── setup_llama.sh                # LLaMA-specific setup
+│   ├── requirements.txt               # Python dependencies
+│   └── pyproject.toml                 # Python package configuration
+├── 📊 outputs/                        # ALL experiment results (consolidated)
+│   ├── 2025-08-26/                   # Results organized by date
+│   ├── 2025-08-27/                   # Recent experiment results
+│   └── [DATE]/                       # Future results auto-organized
+├── 🔬 src/                            # Core source code
+│   ├── data/                         # Evaluation datasets
+│   ├── models/                       # Model loading utilities
+│   ├── sensitivity/                  # Sensitivity analysis algorithms
+│   ├── eval/                         # Evaluation metrics
+│   └── utils/                        # Common utilities
+├── 📓 notebooks/                      # Jupyter research notebooks
+├── 🧪 scripts/                        # Utility scripts
+├── 🧪 test/                           # Test files
+├── 📦 deprecated/                     # Legacy files (archived)
+├── 🐍 **MAIN PYTHON MODULES**         # Core interface (in root)
+│   ├── phase1_runner.py              # Core critical weight analysis
+│   ├── model_compatibility_tester.py  # Model testing & validation
+│   ├── integration_validator.py       # Integration testing
+│   ├── llama_research_runner.py      # LLaMA-optimized workflows
+│   └── research_bridge.py            # Research project integration
+└── 📄 STRUCTURE.md                   # Complete folder organization guide
 ```
 
 ## � VM Environment Setup (Lambda Labs / Cloud GPU)
@@ -166,7 +159,7 @@ source .venv/bin/activate
 uv pip install -e .
 
 # Or install from requirements if available
-uv pip install -r requirements.txt
+uv pip install -r setup/requirements.txt
 
 # Verify installation
 python scripts/quick_test.py
