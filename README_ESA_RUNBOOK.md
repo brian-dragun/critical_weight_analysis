@@ -1,4 +1,4 @@
-git # ESA Runbook: Phase 1–3 Commands, Expectations, and Outcomes
+ESA Runbook: Phase 1–3 Commands, Expectations, and Outcomes
 
 This document outlines the commands for running **Extreme Sensitivity Analysis (ESA)** across **Phase 1 (Baseline)**, **Phase 2 (Sensitivity Profiling)**, and **Phase 3 (Perturbation Testing)**, including what each test is for, what outputs to expect, and what counts as good vs bad results.
 
