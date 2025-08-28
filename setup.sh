@@ -3,8 +3,16 @@
 # Assumes you have already cloned the repo and are running from the project root
 set -euo pipefail
 
-echo "🚀 Lambda Labs VM Setup for Critical Weight Analysis"
-echo "====================================================="
+
+# Color codes
+YELLOW='\033[1;33m'
+CYAN='\033[1;36m'
+GREEN='\033[1;32m'
+RED='\033[1;31m'
+NC='\033[0m' # No Color
+
+echo -e "${CYAN}🚀 Lambda Labs VM Setup for Critical Weight Analysis${NC}"
+echo -e "${CYAN}=====================================================${NC}"
 
 # Update system
 sudo apt update && sudo apt upgrade -y
@@ -28,8 +36,8 @@ TORCH_INDEX_URL=https://download.pytorch.org/whl/cu124
 TORCH_FALLBACK_URL=https://download.pytorch.org/whl/cu121
 PROJECT_DIR="$(pwd)"
 
-echo "===> Setting up Critical Weight Analysis project"
-echo "Project directory: $PROJECT_DIR"
+echo -e "${YELLOW}===> Setting up Critical Weight Analysis project${NC}"
+echo -e "${CYAN}Project directory: $PROJECT_DIR${NC}"
 
 # Ensure Python runtime is available
 uv python install "$PYVER" || echo "Python $PYVER already installed"
@@ -64,7 +72,7 @@ export PIP_CACHE_DIR=/data/cache/pip
 uv pip uninstall -- torch torchvision torchaudio || true
 uv pip install --upgrade pip wheel setuptools
 
-echo "Trying CUDA 12.4 wheels..."
+echo -e "${YELLOW}Trying CUDA 12.4 wheels...${NC}"
 if ! uv pip install torch torchvision torchaudio --index-url "$TORCH_INDEX_URL"; then
   echo "CUDA 12.4 failed, trying CUDA 12.1 fallback..."
   if ! uv pip install torch torchvision torchaudio --index-url "$TORCH_FALLBACK_URL"; then
@@ -85,8 +93,9 @@ if ! uv pip install torch torchvision torchaudio --index-url "$TORCH_INDEX_URL";
   fi
 fi
 
-# Install dependencies
+echo -e "${YELLOW}===> Installing Python dependencies...${NC}"
 uv pip install \
+    scikit-learn>=1.0 \
   transformers>=4.40.0 \
   datasets>=2.14.0 \
   accelerate>=0.20.0 \
@@ -113,102 +122,43 @@ uv pip install \
   wandb \
   tensorboard
 
-# Install the project in development mode
+
+echo -e "${YELLOW}===> Installing project in development mode...${NC}"
 uv pip install -e .
 
+
 # HuggingFace authentication
+echo -e "${YELLOW}===> Checking HuggingFace authentication...${NC}"
 if ! huggingface-cli whoami >/dev/null 2>&1; then
-  echo "HuggingFace authentication needed for Llama models."
-  echo "Please run: huggingface-cli login"
-  echo "Get your token from: https://huggingface.co/settings/tokens"
+    echo -e "${CYAN}HuggingFace authentication required for Llama and restricted models.${NC}"
+    read -p "Paste your HuggingFace token (or leave blank to skip): " HF_TOKEN
+    if [ ! -z "$HF_TOKEN" ]; then
+        huggingface-cli login --token "$HF_TOKEN"
+        echo -e "${GREEN}✅ HuggingFace login complete.${NC}"
+    else
+        echo -e "${YELLOW}⚠️  Skipping HuggingFace login. You may not be able to access restricted models.${NC}"
+    fi
 else
-  echo "✅ HuggingFace authentication already configured"
+    echo -e "${GREEN}✅ HuggingFace authentication already configured${NC}"
 fi
 
-# GPU and environment validation
+
+# HuggingFace Model Loader Test
+echo -e "${YELLOW}===> Testing HuggingFace model loading with loader.py${NC}"
 python - <<'PY'
-import torch
-import platform
 import sys
-import os
-
-print("=== Environment Validation ===")
-print(f"Python: {platform.python_version()}")
-print(f"PyTorch: {torch.__version__}")
-print(f"CUDA version in PyTorch: {torch.version.cuda}")
-print(f"CUDA available: {torch.cuda.is_available()}")
-
-if torch.cuda.is_available():
-    print(f"GPU: {torch.cuda.get_device_name(0)}")
-    print(f"GPU Memory: {torch.cuda.get_device_properties(0).total_memory / 1024**3:.1f} GB")
-else:
-    print("WARNING: CUDA not available!")
-    sys.exit(1)
-
-print("\n=== Library Imports ===")
+import torch
 try:
-    from transformers import AutoTokenizer, AutoModelForCausalLM
-    print("✅ Transformers")
-except ImportError as e:
-    print(f"❌ Transformers: {e}")
-
-try:
-    import datasets
-    print("✅ Datasets")
-except ImportError as e:
-    print(f"❌ Datasets: {e}")
-
-try:
-    import accelerate
-    print("✅ Accelerate")
-except ImportError as e:
-    print(f"❌ Accelerate: {e}")
-
-try:
-    import pandas as pd
-    import numpy as np
-    import matplotlib.pyplot as plt
-    print("✅ Data science stack")
-except ImportError as e:
-    print(f"❌ Data science: {e}")
-
-print("\n=== Cache Directories ===")
-cache_dirs = [
-    ("HF_HOME", os.environ.get("HF_HOME", "Not set")),
-    ("TRANSFORMERS_CACHE", os.environ.get("TRANSFORMERS_CACHE", "Not set")),
-    ("TORCH_HOME", os.environ.get("TORCH_HOME", "Not set")),
-]
-
-for name, path in cache_dirs:
-    if path != "Not set" and os.path.exists(path):
-        print(f"✅ {name}: {path}")
-    else:
-        print(f"⚠️  {name}: {path}")
-
-print("\n=== Project Structure ===")
-project_files = [
-    "src/models/loader.py",
-    "src/eval/perplexity.py", 
-    "src/sensitivity/metrics.py",
-    "src/sensitivity/rank.py",
-    "src/data/dev_small.txt",
-    "pyproject.toml",
-]
-
-for file in project_files:
-    if os.path.exists(file):
-        print(f"✅ {file}")
-    else:
-        print(f"❌ {file}")
-
-print("\n=== Quick GPU Test ===")
-try:
-    a = torch.randn(1000, 1000, device="cuda")
-    b = torch.randn(1000, 1000, device="cuda") 
-    c = a @ b
-    print(f"✅ GPU matrix multiplication: {c.shape}")
+    from src.models.loader import load_model
+    print("Testing model loading with loader.py...")
+    device = 'cuda' if torch.cuda.is_available() else 'cpu'
+    model, tokenizer = load_model('gpt2', device=device)
+    print(f"✅ Model loaded: {type(model).__name__}")
+    print(f"✅ Tokenizer loaded: {type(tokenizer).__name__}")
+    print(f"✅ Device: {next(model.parameters()).device}")
 except Exception as e:
-    print(f"❌ GPU test failed: {e}")
+    print(f"❌ Model loading test failed: {e}")
+    sys.exit(1)
 PY
 
 # Create utility scripts and run quick test
@@ -380,10 +330,10 @@ PY
 
 chmod +x scripts/*.py
 
-echo "===> Final setup validation"
+echo -e "${YELLOW}===> Final setup validation${NC}"
 python scripts/quick_test.py
 
-echo "===> Setting up Git configuration (if needed)"
+echo -e "${YELLOW}===> Setting up Git configuration (if needed)${NC}"
 if ! git config --global user.name >/dev/null 2>&1; then
   echo "Git user not configured. Please run:"
   echo "  git config --global user.name 'Your Name'"
@@ -392,7 +342,11 @@ else
   echo "✅ Git already configured for $(git config --global user.name)"
 fi
 
-echo "===> Adding environment variables to ~/.bashrc"
+# Always set credential helper to store
+git config --global credential.helper store
+echo -e "${GREEN}✅ Git credential.helper set to 'store' (credentials will be saved)${NC}"
+
+echo -e "${YELLOW}===> Adding environment variables to ~/.bashrc${NC}"
 cat >> ~/.bashrc <<'BASHRC'
 
 # Critical Weight Analysis Environment
@@ -409,6 +363,7 @@ export CUDA_LAUNCH_BLOCKING=0
 export TORCH_CUDNN_V8_API_ENABLED=1
 
 BASHRC
+
 
 cat <<'TXT'
 
@@ -430,33 +385,36 @@ Project structure:
 
 Next steps:
 1) Reload environment:
-   source ~/.bashrc
+    source ~/.bashrc
 
-2) Test your environment:
-   python scripts/check_gpu.py
-   python scripts/quick_test.py
+2) Activate your Python environment:
+    source .venv/bin/activate
 
-3) Setup HuggingFace (if not done):
-   huggingface-cli login
+3) Verify HuggingFace authentication:
+    huggingface-cli login
+    hf auth whoami
 
-4) Run quick validation:
-   python phase1_runner_enhanced.py --model gpt2 --metric magnitude --topk 10 --max-samples 5
+4) Test your environment:
+    python scripts/check_gpu.py
+    python scripts/quick_test.py
 
-5) Start Llama research:
-   python phase1_runner_enhanced.py \
-     --model meta-llama/Llama-3.1-8B \
-     --metric grad_x_weight \
-     --topk 100 \
-     --mode per_layer \
-     --max-samples 20 \
-     --save-plots
+5) Run quick validation:
+    python phase1_runner_enhanced.py --model gpt2 --metric magnitude --topk 10 --max-samples 5
 
-6) Run automated testing suite:
-   ./scripts/run_research_tests.sh validation
-   ./scripts/run_research_tests.sh llama
+6) Start Llama research:
+    python phase1_runner_enhanced.py \
+      --model meta-llama/Llama-3.1-8B \
+      --metric grad_x_weight \
+      --topk 100 \
+      --mode per_layer \
+      --max-samples 20 \
+      --save-plots
 
-7) Access comprehensive documentation:
-   cat docs/INDEX.md
+7) Run automated testing suite:
+    ./scripts/run_research_tests.sh validation
+    ./scripts/run_research_tests.sh llama
 
-Happy researching! 🔬 🚀
+8) Access comprehensive documentation:
+    cat docs/INDEX.md
 TXT
+echo -e "\n${GREEN}Happy researching! 🔬 🚀${NC}"
