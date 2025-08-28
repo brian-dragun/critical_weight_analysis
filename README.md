@@ -578,7 +578,9 @@ critical_weight_analysis/
 │   └── data/                       # Evaluation datasets
 ├── 📁 scripts/                     # Automation scripts
 │   ├── run_research_tests.sh       # Automated testing suite
-│   └── generate_research_report.py # Results aggregation
+│   ├── generate_research_report.py # Results aggregation
+│   ├── vm_monitor.py               # Real-time resource monitoring
+│   └── verify_restoration.py       # VM restoration validation
 ├── 📁 docs/                        # All documentation & guides
 │   ├── RESEARCH_TESTING_GUIDE.md   # Comprehensive PhD research protocols
 │   ├── QUICK_RESEARCH_COMMANDS.md  # Ready-to-run command reference
@@ -593,7 +595,8 @@ critical_weight_analysis/
 │   └── research_summary.md         # Generated research reports
 ├── 📁 setup/                       # Installation and configuration
 │   ├── requirements.txt            # Python dependencies
-│   └── install_uv.sh              # UV package manager setup
+│   ├── setup.sh                    # Complete automated setup
+│   └── quick_vm_setup.sh           # Rapid VM restoration script
 ├── � outputs/                     # ALL experiment results
 ├── �📄 phase1_runner_enhanced.py    # Main research CLI
 └── � README.md                    # This comprehensive guide
@@ -643,7 +646,116 @@ The system includes comprehensive automated testing for research validation:
 - **Perturbation Studies**: Performance degradation under weight modifications
 - **Statistical Reports**: Automated summaries and visualizations
 
-## 📊 Research Report Generation
+## � VM Restoration & Backup
+
+### Complete Environment Restoration
+
+If you delete your VM and need to restore your research environment on a fresh Lambda Labs instance:
+
+#### **🚀 Quick Restoration (5 minutes)**
+```bash
+# Download and run automated setup
+wget https://raw.githubusercontent.com/brian-dragun/critical_weight_analysis/master/setup/quick_vm_setup.sh
+chmod +x quick_vm_setup.sh
+./quick_vm_setup.sh
+
+# Authenticate with HuggingFace (required for Llama models)
+huggingface-cli login
+
+# Verify restoration worked
+cd ~/nova/critical_weight_analysis
+python scripts/verify_restoration.py
+```
+
+**What this restores:**
+- ✅ Complete Python environment with all dependencies
+- ✅ PyTorch with CUDA support (tries 12.4, falls back to 12.1)
+- ✅ All research packages and GPU monitoring tools
+- ✅ Project structure and automation scripts
+- ✅ Environment variables and cache configuration
+- ✅ Ready-to-run research system
+
+#### **🔍 Manual Restoration (15 minutes)**
+For complete control, follow the detailed manual setup in the [Installation](#-installation--setup) section above.
+
+#### **✅ Verify Restoration**
+```bash
+# Comprehensive restoration verification
+python scripts/verify_restoration.py
+
+# Expected output: "🎉 VM restoration successful! Ready for research."
+```
+
+**Verification checks:**
+- Package imports (transformers, torch, datasets, etc.)
+- PyTorch and CUDA functionality
+- GPU computation and memory access
+- HuggingFace authentication
+- Model loading (GPT-2 on GPU)
+- Analysis pipeline (perplexity computation)
+- All project files and scripts
+
+#### **📋 Current Environment Snapshot**
+Your working configuration (as of August 28, 2025):
+- **PyTorch**: 2.5.1 with CUDA 12.4 support
+- **GPU**: NVIDIA GH200 480GB working perfectly
+- **HuggingFace**: Authenticated as bdragun
+- **All Tests**: Passing (6/6) with analysis pipeline working
+- **Key Features**: GPU computation, model loading, research workflows
+
+### Backup Procedures
+
+#### **Daily Backup Commands**
+```bash
+# Save current package versions
+pip freeze > my_environment_backup.txt
+
+# Commit and push code changes
+git add . && git commit -m "Daily backup $(date)" && git push
+
+# Save system state snapshot
+python scripts/vm_monitor.py save backup_$(date +%Y%m%d).json
+```
+
+#### **Critical Configuration Backup**
+```bash
+# Save HuggingFace token (if needed)
+cp ~/.cache/huggingface/token ~/hf_token_backup.txt
+
+# Save environment configuration
+cp ~/.bashrc ~/.bashrc.backup
+
+# Export current environment
+conda env export > environment.yml  # If using conda
+# OR
+pip freeze > requirements_backup.txt  # If using pip/uv
+```
+
+### Time Estimates
+- **Quick restoration**: 5 minutes total
+- **Manual restoration**: 15 minutes total
+- **Verification**: 30 seconds
+- **Ready for research**: Immediately after verification
+
+### Restoration Validation
+After restoration, you should be able to run:
+```bash
+# Basic validation
+python phase1_runner_enhanced.py --model gpt2 --metric magnitude --topk 10 --max-samples 5
+
+# Advanced research
+python phase1_runner_enhanced.py \
+    --model meta-llama/Llama-3.1-8B \
+    --metric grad_x_weight \
+    --topk 100 \
+    --mode per_layer \
+    --max-samples 20 \
+    --save-plots
+```
+
+📚 **For detailed restoration procedures, see:** [`docs/VM_RESTORATION_CHECKLIST.md`](docs/VM_RESTORATION_CHECKLIST.md)
+
+## �📊 Research Report Generation
 
 Automatically aggregate and analyze all experimental results:
 
@@ -894,6 +1006,7 @@ For more detailed information, see the comprehensive guides in the `docs/` folde
 
 ### 🛠️ Setup & Configuration
 - **[Lambda Labs Setup Guide](docs/LAMBDA_LABS_SETUP.md)**: Complete VM setup procedures and optimization
+- **[VM Restoration Checklist](docs/VM_RESTORATION_CHECKLIST.md)**: Complete environment restoration procedures
 - **[Project Structure](docs/STRUCTURE.md)**: Codebase organization and architecture
 - **[Integration Guide](docs/INTEGRATION_GUIDE.md)**: Integration with other projects
 - **[Model Guide](docs/MODEL_GUIDE.md)**: Model compatibility and requirements
