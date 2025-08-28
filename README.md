@@ -158,8 +158,9 @@ uv pip install -r setup/requirements.txt
 
 # Or install manually step by step:
 
+
 # Core ML libraries
-uv pip install transformers>=4.55.0 datasets>=3.1.0 accelerate>=1.2.0
+uv pip install transformers>=4.55.0 datasets>=3.1.0 accelerate>=1.2.0 scikit-learn>=1.0
 uv pip install huggingface_hub>=0.26.0 tokenizers>=0.20.0 safetensors>=0.4.0
 
 # Data science stack
@@ -185,12 +186,19 @@ uv pip install -e .
 ```bash
 # Required for accessing Llama models
 huggingface-cli login
+huggingface-cli whoami  # Verify authentication
 
 # Get your token from: https://huggingface.co/settings/tokens
 # You may need to request access to Llama models specifically
 ```
 
-#### Step 8: Configure Environment Variables
+#### Step 8: (Recommended) Configure Git Credential Helper
+```bash
+# Store git credentials for future pushes
+git config --global credential.helper store
+```
+
+#### Step 9: Configure Environment Variables
 ```bash
 # Add to your ~/.bashrc or ~/.zshrc for persistence
 export HF_HOME=/data/cache/hf
@@ -351,11 +359,20 @@ sudo chown -R $USER:$USER /data/cache
 ls -la /data/cache/
 ```
 
+
 ### 🔄 Setup Automation Scripts
 
 Your repository includes several automation scripts:
 
-- **`setup/setup.sh`**: Complete automated setup for Linux/macOS
+- **`setup.sh` (root-level)**: Complete automated setup for Linux/macOS, including:
+    - Python/venv/UV setup
+    - CUDA and PyTorch installation
+    - All research dependencies (including scikit-learn)
+    - HuggingFace login prompt and verification
+    - Git configuration (user, email, credential.helper)
+    - Environment variable setup
+    - Utility/test script creation
+- **`setup/setup.sh`**: (Legacy) Complete automated setup
 - **`setup/quick_vm_setup.sh`**: Rapid setup for new cloud VMs
 - **`scripts/check_gpu.py`**: GPU diagnostics and validation
 - **`scripts/quick_test.py`**: Comprehensive functionality testing
@@ -363,9 +380,10 @@ Your repository includes several automation scripts:
 
 Run the full automated setup:
 ```bash
-chmod +x setup/setup.sh
-./setup/setup.sh
+chmod +x setup.sh
+./setup.sh
 ```
+This will automate all steps above, including HuggingFace authentication and git credential setup.
 
 ## 🎮 Quick Start
 
