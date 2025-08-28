@@ -25,6 +25,7 @@ This folder contains comprehensive documentation for the Critical Weight Analysi
 ## 🛠️ Development & Setup
 
 - **[LAMBDA_LABS_SETUP.md](LAMBDA_LABS_SETUP.md)** - Complete Lambda Labs VM setup guide
+- **[VM_RESTORATION_CHECKLIST.md](VM_RESTORATION_CHECKLIST.md)** - Complete VM restoration procedures
 - **[MIGRATION_SUMMARY.md](MIGRATION_SUMMARY.md)** - Shell → Python migration guide
 - **[GITIGNORE_GUIDE.md](GITIGNORE_GUIDE.md)** - Git configuration and best practices
 
