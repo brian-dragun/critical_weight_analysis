@@ -17,28 +17,19 @@ echo "===> Installing UV package manager"
 curl -LsSf https://astral.sh/uv/install.sh | sh
 source ~/.bashrc || export PATH="$HOME/.local/bin:$PATH"
 
-
-# Clone project into current directory if not present
+# Clone project
 echo "===> Cloning critical weight analysis project"
+mkdir -p ~/nova
+cd ~/nova
 if [ ! -d "critical_weight_analysis" ]; then
     git clone https://github.com/brian-dragun/critical_weight_analysis.git
-    cd critical_weight_analysis
-else
-    cd critical_weight_analysis
 fi
+cd critical_weight_analysis
 
 # Run main setup
 echo "===> Running main setup script"
 chmod +x setup/setup.sh
 bash setup/setup.sh
-
-# Activate the virtual environment
-if [ -f ".venv/bin/activate" ]; then
-    echo "===> Activating project virtual environment (.venv)"
-    source .venv/bin/activate
-else
-    echo "WARNING: .venv not found. Please check setup logs."
-fi
 
 echo ""
 echo "🎉 Quick setup complete! Your Lambda Labs VM is ready for research."
