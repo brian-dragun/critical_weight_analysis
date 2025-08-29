@@ -46,7 +46,7 @@ python scripts/run_baseline.py \
 
 ## 2) grad×weight, per-layer
 ```bash
-python phase1_runner_enhanced.py \
+python esa_runner.py \
   --model meta-llama/Llama-3.1-8B \
   --metric grad_x_weight \
   --mode per_layer \
@@ -62,7 +62,7 @@ python phase1_runner_enhanced.py \
 
 ## 3) grad×weight, global
 ```bash
-python phase1_runner_enhanced.py \
+python esa_runner.py \
   --model meta-llama/Llama-3.1-8B \
   --metric grad_x_weight \
   --mode global \
@@ -79,7 +79,7 @@ python phase1_runner_enhanced.py \
 ## 4) Corroboration metrics
 ### grad_squared
 ```bash
-python phase1_runner_enhanced.py \
+python esa_runner.py \
   --model meta-llama/Llama-3.1-8B \
   --metric grad_squared \
   --mode per_layer \
@@ -92,7 +92,7 @@ python phase1_runner_enhanced.py \
 
 ### act_mag
 ```bash
-python phase1_runner_enhanced.py \
+python esa_runner.py \
   --model meta-llama/Llama-3.1-8B \
   --metric act_mag \
   --mode per_layer \
@@ -105,7 +105,7 @@ python phase1_runner_enhanced.py \
 
 ### hutchinson_diag (curvature)
 ```bash
-python phase1_runner_enhanced.py \
+python esa_runner.py \
   --model meta-llama/Llama-3.1-8B \
   --metric hutchinson_diag \
   --mode global \
@@ -122,7 +122,7 @@ python phase1_runner_enhanced.py \
 
 ## 5) Sign flip
 ```bash
-python phase1_runner_enhanced.py \
+python esa_runner.py \
   --model meta-llama/Llama-3.1-8B \
   --metric grad_x_weight \
   --mode per_layer \
@@ -142,7 +142,7 @@ python phase1_runner_enhanced.py \
 
 ## 6) Zeroing
 ```bash
-python phase1_runner_enhanced.py \
+python esa_runner.py \
   --model meta-llama/Llama-3.1-8B \
   --metric grad_x_weight \
   --mode per_layer \
@@ -162,7 +162,7 @@ python phase1_runner_enhanced.py \
 
 ## 7) Gaussian noise
 ```bash
-python phase1_runner_enhanced.py \
+python esa_runner.py \
   --model meta-llama/Llama-3.1-8B \
   --metric grad_x_weight \
   --mode per_layer \
@@ -182,7 +182,7 @@ python phase1_runner_enhanced.py \
 
 ## 8) Bit flip perturbation
 ```bash
-python phase1_runner_enhanced.py \
+python esa_runner.py \
   --model meta-llama/Llama-3.1-8B \
   --metric grad_x_weight \
   --mode per_layer \
@@ -202,7 +202,7 @@ python phase1_runner_enhanced.py \
 
 ## 9) Hutchinson + sign flip
 ```bash
-python phase1_runner_enhanced.py \
+python esa_runner.py \
   --model meta-llama/Llama-3.1-8B \
   --metric hutchinson_diag \
   --mode global \

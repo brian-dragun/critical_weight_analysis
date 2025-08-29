@@ -28,7 +28,7 @@ This document outlines the commands for running **Extreme Sensitivity Analysis (
 
 ## 1) Llama-3.1-8B baseline
 ```bash
-python phase1_runner_enhanced.py \
+python esa_runner.py \
   --model meta-llama/Llama-3.1-8B \
   --metric grad_x_weight \
   --mode per_layer \
@@ -53,7 +53,7 @@ python phase1_runner_enhanced.py \
 
 ## 2) grad×weight, per-layer (Primary Method)
 ```bash
-python phase1_runner_enhanced.py \
+python esa_runner.py \
   --model meta-llama/Llama-3.1-8B \
   --metric grad_x_weight \
   --mode per_layer \
@@ -72,7 +72,7 @@ python phase1_runner_enhanced.py \
 
 ## 1) Llama-3.1-8B baseline
 ```bash
-python phase1_runner_enhanced.py \
+python esa_runner.py \
   --model meta-llama/Llama-3.1-8B \
   --metric grad_x_weight \
   --mode per_layer \
@@ -99,7 +99,7 @@ This document outlines the commands for running **Extreme Sensitivity Analysis (
 
 ## 1) Llama-3.1-8B baseline
 ```bash
-python phase1_runner_enhanced.py \
+python esa_runner.py \
   --model meta-llama/Llama-3.1-8B \
   --metric magnitude \
   --device cuda \
@@ -118,7 +118,7 @@ python phase1_runner_enhanced.py \
 
 ## 2) grad×weight, per-layer
 ```bash
-python phase1_runner_enhanced.py \
+python esa_runner.py \
   --model meta-llama/Llama-3.1-8B \
   --metric grad_x_weight \
   --mode per_layer \
@@ -134,7 +134,7 @@ python phase1_runner_enhanced.py \
 
 ## 3) grad×weight, global (Validation Method)
 ```bash
-python phase1_runner_enhanced.py \
+python esa_runner.py \
   --model meta-llama/Llama-3.1-8B \
   --metric grad_x_weight \
   --mode global \
@@ -156,7 +156,7 @@ python phase1_runner_enhanced.py \
 
 ### grad_squared (Gradient Magnitude)
 ```bash
-python phase1_runner_enhanced.py \
+python esa_runner.py \
   --model meta-llama/Llama-3.1-8B \
   --metric grad_squared \
   --mode per_layer \
@@ -172,7 +172,7 @@ python phase1_runner_enhanced.py \
 
 ### act_mag (Non-Gradient Method)
 ```bash
-python phase1_runner_enhanced.py \
+python esa_runner.py \
   --model meta-llama/Llama-3.1-8B \
   --metric act_mag \
   --mode per_layer \
@@ -189,7 +189,7 @@ python phase1_runner_enhanced.py \
 
 ### hutchinson_diag (Curvature/Hessian)
 ```bash
-python phase1_runner_enhanced.py \
+python esa_runner.py \
   --model meta-llama/Llama-3.1-8B \
   --metric hutchinson_diag \
   --mode global \
@@ -215,7 +215,7 @@ python phase1_runner_enhanced.py \
 
 ## 5) Sign flip (Primary Causal Test)
 ```bash
-python phase1_runner_enhanced.py \
+python esa_runner.py \
   --model meta-llama/Llama-3.1-8B \
   --metric grad_x_weight \
   --mode per_layer \
@@ -238,7 +238,7 @@ python phase1_runner_enhanced.py \
 
 ## 6) Zeroing (Maximum Disruption Test)
 ```bash
-python phase1_runner_enhanced.py \
+python esa_runner.py \
   --model meta-llama/Llama-3.1-8B \
   --metric grad_x_weight \
   --mode per_layer \
@@ -261,7 +261,7 @@ python phase1_runner_enhanced.py \
 
 ## 7) Gaussian noise (Robustness Test)
 ```bash
-python phase1_runner_enhanced.py \
+python esa_runner.py \
   --model meta-llama/Llama-3.1-8B \
   --metric grad_x_weight \
   --mode per_layer \
@@ -284,7 +284,7 @@ python phase1_runner_enhanced.py \
 
 ## 8) Bit flip perturbation (Discrete Test)
 ```bash
-python phase1_runner_enhanced.py \
+python esa_runner.py \
   --model meta-llama/Llama-3.1-8B \
   --metric grad_x_weight \
   --mode per_layer \
@@ -307,7 +307,7 @@ python phase1_runner_enhanced.py \
 
 ## 9) Hutchinson + sign flip (Cross-Validation)
 ```bash
-python phase1_runner_enhanced.py \
+python esa_runner.py \
   --model meta-llama/Llama-3.1-8B \
   --metric hutchinson_diag \
   --mode global \
