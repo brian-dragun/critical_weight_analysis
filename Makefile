@@ -92,6 +92,13 @@ extended-core: ## Extended baseline on core models only
 	make extended-llama
 	$(PYTHON) $(BASELINE_RUNNER) --model mistralai/Mistral-7B-v0.3 --baseline extended --datasets wikitext-103 openwebtext --context-lens 1024 4096 --seeds 1337 123 999 --eval-suites hellaswag piqa boolq --dtype bf16
 
+extended-all: ## Complete extended evaluation suite (all models)
+	@echo "$(GREEN)Starting complete extended evaluation suite...$(RESET)"
+	make extended-core
+	make extended-mixtral
+	$(PYTHON) $(BASELINE_RUNNER) --model microsoft/Phi-3-mini-4k-instruct --baseline extended --datasets wikitext-103 openwebtext --context-lens 1024 4096 --seeds 1337 123 999 --eval-suites hellaswag piqa boolq --dtype bf16
+	@echo "$(GREEN)Extended evaluation suite complete!$(RESET)"
+
 # =============================================================================
 # PHASE-BASED WORKFLOWS
 # =============================================================================

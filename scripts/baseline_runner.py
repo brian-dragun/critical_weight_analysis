@@ -446,10 +446,29 @@ def main():
 
     # Extended: add zero-shot tasks, long-context, and (if MoE) router stats
     elif cfg.baseline == "extended":
-        # 1) Standard pass first
-        args.baseline = "standard"
-        main()  # quick and dirty reuse; alternatively refactor to a function
-        # NOTE: If recursion bothers you, split the standard loop into a shared function.
+        # 1) First run standard baseline evaluations for all datasets/contexts/seeds
+        for ds in cfg.datasets:
+            for ctx in cfg.context_lens:
+                for seed in cfg.seeds:
+                    set_global_seed(seed)
+                    torch.cuda.reset_peak_memory_stats() if torch.cuda.is_available() else None
+
+                    # Standard evaluation (same as standard baseline)
+                    total_tokens = 500_000
+
+                    results, calibration, artifacts, tps = eval_one_pass(
+                        model, tok, context_len=ctx, max_tokens=total_tokens,
+                        batch_tokens=cfg.batch_tokens, compute_calibration=True
+                    )
+
+                    key = f"{ds}@{ctx}@seed{seed}"
+                    manifest.results[key] = {
+                        "metrics": results,
+                        "calibration": calibration,
+                        "artifacts": artifacts,
+                    }
+                    manifest.throughput_tok_per_s[key] = tps
+                    manifest.peak_vram_gb = max(manifest.peak_vram_gb or 0.0, peak_vram_gb())
 
         # 2) Long-context diagnostic
         for L in cfg.long_context:
