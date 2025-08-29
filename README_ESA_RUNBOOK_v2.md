@@ -1,4 +1,53 @@
-# ESA Ru# Phase 1 — Baseline (reference performa# Phase 2 — Sensitivity Profiling (rank "super weights")
+# ESA Runbook v2: Phase 1–3 Commands, Expectations, and Outcomes
+
+This document outlines the commands for running **Extreme Sensitivity Analysis (ESA)** across **Phase 1 (Baseline)**, **Phase 2 (Sensitivity Profiling)**, and **Phase 3 (Perturbation Testing)**. ESA validates the "super-weight hypothesis" by identifying critical weights through gradient-based metrics and testing their causal importance via targeted perturbations.
+
+**Research Goal:** Demonstrate that a small fraction of weights (typically <1%) are disproportionately important for model performance, with perturbations to these "super weights" causing significantly larger performance degradation than random or least-important weight modifications.
+
+## CLI Choices Reference
+
+**Valid --metric choices**: `grad_x_weight`, `grad_squared`, `hessian_diag`, `hutchinson_diag`, `magnitude`, `act_mag`  
+**Valid --mode choices**: `per_layer`, `global`  
+**Valid --perturb choices**: `zero`, `sign_flip`, `gauss_noise`, `bit_flip`  
+
+## Baseline Performance Expectations (from latest reports)
+
+| Model | Parameters | Expected PPL | Expected Accuracy |
+|-------|------------|-------------|------------------|
+| Llama-3.1-8B | 8.0B | 1.025 (std/ext), 1.11 (smoke) | 99.4% |
+| Mistral-7B-v0.3 | 7.2B | 1.030 (std/ext), 1.14 (smoke) | 99.3% |
+| Phi-3-mini | 3.8B | 1.028 (std/ext), 1.11 (smoke) | 99.3% |
+| Mixtral-8x7B | 47B/13B | 1.029 (ext) | 99.5% |
+| pythia-1.4b | 1.4B | 1.192 (ext), 1.20 (smoke) | 96.9% |
+
+---
+
+# Phase 1 — Baseline (reference performance)
+
+**Phase Purpose:** Establish unmodified model performance as the reference point for all perturbation experiments. Critical for computing relative performance changes (ΔPPL).
+
+## 1) Llama-3.1-8B baseline
+```bash
+python phase1_runner_enhanced.py \
+  --model meta-llama/Llama-3.1-8B \
+  --metric grad_x_weight \
+  --mode per_layer \
+  --topk 100 \
+  --max-samples 200 \
+  --device cuda \
+  --save-plots \
+  --out-dir outputs/p1_baseline/llama31_8b
+```
+**Purpose:** Establish the unmodified model's **reference perplexity/loss** using the same metric as main experiments to ensure comparable sensitivity rankings.  
+**Why grad_x_weight:** Matches Phase 2/3 methodology for consistent weight importance scoring.  
+**Outputs:** `experiment_manifest.json`, `config.json`, baseline perplexity (Expected PPL: ~1.03–1.05 for standard/extended; ~1.11 for smoke), `top_weights.csv` for reference rankings.  
+**Good result:** Stable perplexity baseline (±0.1 across runs), clear sensitivity distributions.  
+**Bad result:** NaNs, unstable metrics, implausibly flat weight distributions.  
+**Time estimate:** 5-10 minutes.
+
+---
+
+# Phase 2 — Sensitivity Profiling (rank "super weights")
 
 **Phase Purpose:** Identify the most critical weights using multiple sensitivity metrics. The goal is to find heavy-tailed distributions where a small fraction of weights have disproportionately high sensitivity scores.
 
@@ -35,7 +84,7 @@ python phase1_runner_enhanced.py \
 ```
 **Purpose:** Establish the unmodified model's **reference perplexity/loss** using the same metric as main experiments to ensure comparable sensitivity rankings.  
 **Why grad_x_weight:** Matches Phase 2/3 methodology for consistent weight importance scoring.  
-**Outputs:** `experiment_manifest.json`, `config.json`, baseline perplexity (~3.5-4.5 for Llama-3.1-8B), `top_weights.csv` for reference rankings.  
+**Outputs:** `experiment_manifest.json`, `config.json`, baseline perplexity (Expected PPL: ~1.03–1.05 for standard/extended; ~1.11 for smoke), `top_weights.csv` for reference rankings.  
 **Good result:** Stable perplexity baseline (±0.1 across runs), clear sensitivity distributions.  
 **Bad result:** NaNs, unstable metrics, implausibly flat weight distributions.  
 **Time estimate:** 5-10 minutes.1–3 Commands, Expectations, and Outcomes
@@ -121,11 +170,11 @@ python phase1_runner_enhanced.py \
 **Expected overlap:** 60-80% with grad×weight top-k.  
 **Time estimate:** 10-15 minutes.
 
-### activation_magnitude (Non-Gradient Method)
+### act_mag (Non-Gradient Method)
 ```bash
 python phase1_runner_enhanced.py \
   --model meta-llama/Llama-3.1-8B \
-  --metric activation_magnitude \
+  --metric act_mag \
   --mode per_layer \
   --topk 100 \
   --max-samples 200 \
@@ -218,22 +267,45 @@ python phase1_runner_enhanced.py \
   --mode per_layer \
   --topk 100 \
   --max-samples 200 \
-  --perturb gaussian --perturb-scale 0.02 \
+  --perturb gauss_noise --perturb-scale 0.02 \
   --controls random_k,bottom_k \
   --seeds 0,1,2 \
   --stability-check \
   --device cuda \
   --save-plots \
-  --out-dir outputs/p3/llama31_8b/gaussian_0p02_k100
+  --out-dir outputs/p3/llama31_8b/gauss_0p02_k100
 ```
 **Purpose:** Test noise robustness of super weights vs controls.  
-**Why gaussian:** Models realistic weight corruption (hardware errors, quantization noise).  
+**Why gauss_noise:** Models realistic weight corruption (hardware errors, quantization noise).  
 **Scale choice:** 0.02 = 2% relative noise, strong enough to matter but not catastrophic.  
 **Good:** Super-weight noise damage significantly exceeds random/bottom-k damage.  
 **Bad:** No separation from random, excessive model degradation across all conditions.  
 **Time estimate:** 15-25 minutes.
 
-## 8) Hutchinson + sign flip (Cross-Validation)
+## 8) Bit flip perturbation (Discrete Test)
+```bash
+python phase1_runner_enhanced.py \
+  --model meta-llama/Llama-3.1-8B \
+  --metric grad_x_weight \
+  --mode per_layer \
+  --topk 100 \
+  --max-samples 200 \
+  --perturb bit_flip --perturb-prob 0.05 \
+  --controls random_k,bottom_k \
+  --seeds 0,1,2 \
+  --stability-check \
+  --device cuda \
+  --save-plots \
+  --out-dir outputs/p3/llama31_8b/bitflip_p005_k100
+```
+**Purpose:** Test discrete perturbation effects on critical weights.  
+**Why bit_flip:** Models hardware bit errors, quantization effects, discrete corruption scenarios.  
+**Probability choice:** 0.05 = 5% chance per weight element, significant but localized damage.  
+**Good:** Super-weight bit corruption significantly exceeds random/bottom-k damage.  
+**Bad:** No separation from random, excessive model degradation across all conditions.  
+**Time estimate:** 15-25 minutes.
+
+## 9) Hutchinson + sign flip (Cross-Validation)
 ```bash
 python phase1_runner_enhanced.py \
   --model meta-llama/Llama-3.1-8B \

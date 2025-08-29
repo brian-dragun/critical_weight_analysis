@@ -85,7 +85,7 @@ def parse_args() -> argparse.Namespace:
         '--device',
         type=str,
         default='cuda',
-        help='Device to use: cuda, cpu, or auto (default: auto)'
+        help='Device to use: cuda, cpu, or auto (default: cuda)'
     )
     
     # Sensitivity analysis settings
