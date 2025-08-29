@@ -19,7 +19,7 @@
   ],
   "batch_tokens": 131072,
   "eval_suites": [],
-  "date_utc": "2025-08-29T17:28:11Z",
+  "date_utc": "2025-08-29T18:07:48Z",
   "git_sha": null,
   "commit_dirty_flag": null,
   "results": {
@@ -30,7 +30,7 @@
         "perplexity": 1.1144917122256655,
         "token_accuracy": 0.97607421875,
         "tokens_evaluated": 2048,
-        "tok_per_sec": 5791.351061699595
+        "tok_per_sec": 5950.352342510153
       },
       "calibration": {},
       "artifacts": {
@@ -41,7 +41,7 @@
     }
   },
   "throughput_tok_per_s": {
-    "wikitext-2-raw-v1@1024": 5791.351061699595
+    "wikitext-2-raw-v1@1024": 5950.352342510153
   },
   "peak_vram_gb": 15.485863208770752
 }

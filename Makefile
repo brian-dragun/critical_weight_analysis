@@ -88,15 +88,23 @@ extended-llama: ## Extended baseline for Llama (with long-context and zero-shot)
 extended-mixtral: ## Extended baseline for Mixtral (MoE analysis)
 	$(PYTHON) $(BASELINE_RUNNER) --model mistralai/Mixtral-8x7B-v0.1 --baseline extended --datasets wikitext-103 openwebtext --context-lens 1024 4096 --long-context 8192 16384 --seeds 1337 123 999 --eval-suites hellaswag piqa boolq --dtype bf16
 
-extended-core: ## Extended baseline on core models only
-	make extended-llama
+extended-core: ## Extended baseline on core models only (same as smoke/standard)
+	@echo "$(YELLOW)Running extended baselines on core models...$(RESET)"
+	$(PYTHON) $(BASELINE_RUNNER) --model meta-llama/Llama-3.1-8B --baseline extended --datasets wikitext-103 openwebtext --context-lens 1024 4096 --long-context 8192 16384 32768 --seeds 1337 123 999 --eval-suites hellaswag piqa boolq arc_e --dtype bf16
 	$(PYTHON) $(BASELINE_RUNNER) --model mistralai/Mistral-7B-v0.3 --baseline extended --datasets wikitext-103 openwebtext --context-lens 1024 4096 --seeds 1337 123 999 --eval-suites hellaswag piqa boolq --dtype bf16
+	$(PYTHON) $(BASELINE_RUNNER) --model microsoft/Phi-3-mini-4k-instruct --baseline extended --datasets wikitext-103 openwebtext --context-lens 1024 4096 --seeds 1337 123 999 --eval-suites hellaswag piqa boolq --dtype bf16
+	$(PYTHON) $(BASELINE_RUNNER) --model EleutherAI/pythia-1.4b --baseline extended --datasets wikitext-103 openwebtext --context-lens 1024 4096 --seeds 1337 123 999 --eval-suites hellaswag piqa boolq --dtype bf16
 
-extended-all: ## Complete extended evaluation suite (all models)
+extended-available: ## Extended baseline on all available (non-gated) models
+	@echo "$(GREEN)Starting extended evaluation on available models...$(RESET)"
+	make extended-core
+	$(PYTHON) $(BASELINE_RUNNER) --model microsoft/Phi-3-mini-4k-instruct --baseline extended --datasets wikitext-103 openwebtext --context-lens 1024 4096 --seeds 1337 123 999 --eval-suites hellaswag piqa boolq --dtype bf16
+	@echo "$(GREEN)Extended evaluation on available models complete!$(RESET)"
+
+extended-all: ## Complete extended evaluation suite (all models including MoE)
 	@echo "$(GREEN)Starting complete extended evaluation suite...$(RESET)"
 	make extended-core
 	make extended-mixtral
-	$(PYTHON) $(BASELINE_RUNNER) --model microsoft/Phi-3-mini-4k-instruct --baseline extended --datasets wikitext-103 openwebtext --context-lens 1024 4096 --seeds 1337 123 999 --eval-suites hellaswag piqa boolq --dtype bf16
 	@echo "$(GREEN)Extended evaluation suite complete!$(RESET)"
 
 # =============================================================================
