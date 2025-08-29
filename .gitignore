@@ -39,8 +39,6 @@ venv.bak/
 # =============================================================
 
 # Output directories with analysis results
-outputs/
-results/
 experiments/
 analysis_results/
 *_research_*/
@@ -77,7 +75,6 @@ phase*_output/
 *.pth
 *.pt
 *.ckpt
-models/
 checkpoints/
 model_cache/
 transformers_cache/

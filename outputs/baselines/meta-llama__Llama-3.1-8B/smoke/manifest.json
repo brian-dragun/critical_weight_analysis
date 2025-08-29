@@ -1,0 +1,47 @@
+{
+  "model_id": "meta-llama/Llama-3.1-8B",
+  "revision": null,
+  "dtype": "bf16",
+  "tokenizer_hash": null,
+  "eos_token_id": 128001,
+  "pad_token_id": 128001,
+  "vocab_size": 128000,
+  "baseline": "smoke",
+  "datasets": [
+    "wikitext-2-raw-v1"
+  ],
+  "context_lens": [
+    1024
+  ],
+  "long_context": [],
+  "seeds": [
+    1337
+  ],
+  "batch_tokens": 131072,
+  "eval_suites": [],
+  "date_utc": "2025-08-29T17:28:11Z",
+  "git_sha": null,
+  "commit_dirty_flag": null,
+  "results": {
+    "wikitext-2-raw-v1@1024": {
+      "seed": 1337,
+      "metrics": {
+        "loss": 0.1083984375,
+        "perplexity": 1.1144917122256655,
+        "token_accuracy": 0.97607421875,
+        "tokens_evaluated": 2048,
+        "tok_per_sec": 5791.351061699595
+      },
+      "calibration": {},
+      "artifacts": {
+        "logprob_hist_path": null,
+        "entropy_hist_path": null,
+        "topk_mass_hist_path": null
+      }
+    }
+  },
+  "throughput_tok_per_s": {
+    "wikitext-2-raw-v1@1024": 5791.351061699595
+  },
+  "peak_vram_gb": 15.485863208770752
+}

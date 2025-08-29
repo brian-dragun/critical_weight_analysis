@@ -32,12 +32,11 @@ def main():
     texts = texts[:args.max_samples]
 
     print(f"Evaluating perplexity on {len(texts)} samples...")
-    results = compute_perplexity(model, tokenizer, texts, device=args.device, batch_size=args.batch_size)
+    avg_perplexity = compute_perplexity(model, tokenizer, texts, device=args.device, batch_size=args.batch_size)
 
     out_file = os.path.join(args.out_dir, 'perplexity_results.txt')
     with open(out_file, 'w') as f:
-        for i, (text, ppl) in enumerate(zip(texts, results)):
-            f.write(f"Sample {i+1}: Perplexity={ppl:.4f}\n{text}\n\n")
+        f.write(f"Average Perplexity: {avg_perplexity:.4f}\n")
     print(f"Results saved to {out_file}")
 
 if __name__ == "__main__":

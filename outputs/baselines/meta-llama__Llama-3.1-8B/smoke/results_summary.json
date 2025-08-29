@@ -1,0 +1,9 @@
+{
+  "model_id": "meta-llama/Llama-3.1-8B",
+  "baseline": "smoke",
+  "best_ppl": 1.1144917122256655,
+  "best_acc": 0.97607421875,
+  "peak_vram_gb": 15.485863208770752,
+  "avg_tok_per_sec": 5791.351061699595,
+  "created": "2025-08-29T17:28:11Z"
+}

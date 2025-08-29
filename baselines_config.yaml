@@ -1,0 +1,148 @@
+# Baseline Testing Configuration for ESA Research
+# ================================================
+
+# Model groups organized by research priority and compute requirements
+models:
+  # Phase 1: Core Dense Models (Start here)
+  phase1_core:
+    - model_id: "meta-llama/Llama-3.1-8B"
+      nickname: "llama31_8b"
+      priority: 1
+      compute_tier: "medium"
+      context_lens: [1024, 4096, 8192]
+      notes: "Primary anchor model for ESA"
+      
+    - model_id: "mistralai/Mistral-7B-v0.3"
+      nickname: "mistral_7b"
+      priority: 1
+      compute_tier: "medium"
+      context_lens: [1024, 4096]
+      notes: "Efficient 7B baseline"
+      
+    - model_id: "microsoft/Phi-3-mini-3.8B-instruct"
+      nickname: "phi3_mini"
+      priority: 1
+      compute_tier: "low"
+      context_lens: [1024, 4096]
+      notes: "Fast iteration model"
+      
+    - model_id: "EleutherAI/pythia-1.4b"
+      nickname: "pythia_1.4b"
+      priority: 1
+      compute_tier: "low"
+      context_lens: [1024, 2048]
+      notes: "Interpretability gold standard"
+
+  # Phase 2: Scale Validation  
+  phase2_scale:
+    - model_id: "meta-llama/Llama-3.1-70B"
+      nickname: "llama31_70b"
+      priority: 2
+      compute_tier: "high"
+      context_lens: [1024, 4096]
+      notes: "Large scale validation (if compute allows)"
+      
+    - model_id: "EleutherAI/pythia-410m"
+      nickname: "pythia_410m"
+      priority: 2
+      compute_tier: "low"
+      context_lens: [1024, 2048]
+      notes: "Scaling law - small"
+      
+    - model_id: "EleutherAI/pythia-6.9b"
+      nickname: "pythia_6.9b"
+      priority: 2
+      compute_tier: "medium"
+      context_lens: [1024, 2048]
+      notes: "Scaling law - medium"
+      
+    - model_id: "google/gemma-2-9b"
+      nickname: "gemma2_9b"
+      priority: 2
+      compute_tier: "medium"
+      context_lens: [1024, 4096]
+      notes: "Google's efficient architecture"
+
+  # Phase 3: Architecture Diversity
+  phase3_diverse:
+    - model_id: "mistralai/Mixtral-8x7B-v0.1"
+      nickname: "mixtral_8x7b"
+      priority: 3
+      compute_tier: "high"
+      context_lens: [1024, 4096]
+      notes: "MoE architecture comparison"
+      
+    - model_id: "Qwen/Qwen2.5-14B"
+      nickname: "qwen25_14b"
+      priority: 3
+      compute_tier: "medium"
+      context_lens: [1024, 4096]
+      notes: "Multilingual capabilities"
+      
+    - model_id: "allenai/OLMo-2-1124-13B"
+      nickname: "olmo2_13b"
+      priority: 3
+      compute_tier: "medium"
+      context_lens: [1024, 4096]
+      notes: "Research transparency"
+      
+    - model_id: "TinyLlama/TinyLlama-1.1B-Chat-v1.0"
+      nickname: "tinyllama_1.1b"
+      priority: 3
+      compute_tier: "low"
+      context_lens: [1024, 2048]
+      notes: "Ultra-fast testing"
+
+# Default configurations for each baseline type
+baseline_configs:
+  smoke:
+    datasets: ["wikitext-2-raw-v1"]
+    context_lens: [1024]
+    seeds: [1337]
+    batch_tokens: 32768
+    max_tokens: 2000
+    compute_calibration: false
+    
+  standard:
+    datasets: ["wikitext-103", "c4"]
+    context_lens: [1024, 4096]
+    seeds: [1337, 123, 999]
+    batch_tokens: 131072
+    max_tokens: 500000
+    compute_calibration: true
+    
+  extended:
+    datasets: ["wikitext-103", "openwebtext"]
+    context_lens: [1024, 4096]
+    long_context: [8192, 16384, 32768]
+    seeds: [1337, 123, 999]
+    batch_tokens: 131072
+    max_tokens: 500000
+    eval_suites: ["hellaswag", "piqa", "boolq", "arc_e", "arc_c", "winogrande"]
+    compute_calibration: true
+
+# Compute tier specifications
+compute_tiers:
+  low:
+    max_vram_gb: 16
+    recommended_dtype: "bf16"
+    batch_tokens: 65536
+    
+  medium:
+    max_vram_gb: 40
+    recommended_dtype: "bf16"
+    batch_tokens: 131072
+    
+  high:
+    max_vram_gb: 80
+    recommended_dtype: "bf16"
+    batch_tokens: 262144
+
+# Output organization
+output_structure:
+  base_dir: "outputs/baselines"
+  subdirs:
+    manifests: "manifests"
+    artifacts: "artifacts"
+    summaries: "summaries"
+    plots: "plots"
