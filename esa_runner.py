@@ -110,7 +110,7 @@ def parse_args() -> argparse.Namespace:
         '--metric',
         type=str,
         default='grad_x_weight',
-        choices=['grad_x_weight', 'grad_squared', 'hessian_diag', 'hutchinson_diag', 'magnitude', 'act_mag'],
+        choices=['grad_x_weight', 'grad_squared', 'hessian_diag', 'hutchinson_diag', 'magnitude', 'act_mag', 'activation_magnitude'],
         help='Sensitivity metric to compute (default: grad_x_weight)'
     )
     
@@ -150,6 +150,27 @@ def parse_args() -> argparse.Namespace:
         type=float,
         default=0.1,
         help='Probability parameter for bit_flip perturbation (default: 0.1)'
+    )
+    
+    parser.add_argument(
+        '--scale',
+        type=float,
+        default=1.2,
+        help='Scaling factor for perturbation (default: 1.2)'
+    )
+    
+    parser.add_argument(
+        '--noise_sigma',
+        type=float,
+        default=0.05,
+        help='Sigma parameter for Gaussian noise perturbation (default: 0.05)'
+    )
+    
+    parser.add_argument(
+        '--bits',
+        type=int,
+        default=1,
+        help='Number of bits to flip for bit-flip perturbation (default: 1)'
     )
     
     # Control baselines
@@ -208,6 +229,18 @@ def parse_args() -> argparse.Namespace:
         '--save-plots',
         action='store_true',
         help='Generate and save visualization plots'
+    )
+    
+    parser.add_argument(
+        '--export-topk-csv',
+        action='store_true',
+        help='Export top-k weights to CSV format'
+    )
+    
+    parser.add_argument(
+        '--export-stats',
+        action='store_true',
+        help='Export detailed sensitivity statistics'
     )
     
     parser.add_argument(
