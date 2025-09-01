@@ -1,0 +1,102 @@
+{
+  "experiment_name": "meta-llama/Llama-3.1-8B_grad_x_weight_k300",
+  "timestamp_start": "2025-09-01T18:04:04.777058",
+  "manifest_version": "1.0",
+  "environment": {
+    "python_version": "3.12.11 (main, Aug 28 2025, 17:07:46) [Clang 20.1.4 ]",
+    "platform": "Linux-6.11.0-1011-nvidia-64k-aarch64-with-glibc2.39",
+    "hostname": "192-222-58-149",
+    "user": "ubuntu",
+    "working_directory": "/lambda/nfs/nova/critical_weight_analysis",
+    "environment_variables": {
+      "HF_HUB_CACHE": "/data/cache/hf/hub",
+      "TRANSFORMERS_CACHE": "/data/cache/hf/transformers",
+      "CUDA_LAUNCH_BLOCKING": "0",
+      "TORCH_CUDNN_V8_API_ENABLED": "1",
+      "HF_HOME": "/data/cache/hf",
+      "LD_LIBRARY_PATH": "/usr/mpi/gcc/openmpi-4.1.7rc1/lib:/usr/mpi/gcc/openmpi-4.1.7rc1/lib64",
+      "TORCH_HOME": "/data/cache/torch",
+      "PATH": "/lambda/nfs/nova/critical_weight_analysis/.venv/bin:/home/ubuntu/.local/bin:/home/ubuntu/.local/bin:/home/ubuntu/.local/bin:/home/ubuntu/.vscode-server/cli/servers/Stable-6f17636121051a53c88d3e605c491d22af2ba755/server/bin/remote-cli:/home/ubuntu/.local/bin:/usr/mpi/gcc/openmpi-4.1.7rc1/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin:/home/ubuntu/.vscode-server/data/User/globalStorage/github.copilot-chat/debugCommand"
+    }
+  },
+  "git": {
+    "commit_hash": "08ed53df8653ab5b51748c1180bd9fecdc3a7331",
+    "branch": "master",
+    "has_uncommitted_changes": true,
+    "status": "?? --out-dir"
+  },
+  "library_versions": {
+    "torch": "2.5.1",
+    "numpy": "2.1.2",
+    "transformers": "4.56.0",
+    "pandas": "2.3.2",
+    "sklearn": "1.7.1",
+    "matplotlib": "3.10.6",
+    "seaborn": "0.13.2"
+  },
+  "config": {
+    "model": "meta-llama/Llama-3.1-8B",
+    "device": "cuda",
+    "dtype": "bf16",
+    "metric": "grad_x_weight",
+    "topk": 300,
+    "mode": "global",
+    "perturb": null,
+    "perturb_scale": 1.0,
+    "perturb_prob": 0.1,
+    "scale": 1.2,
+    "noise_sigma": 0.05,
+    "bits": 1,
+    "controls": null,
+    "seeds": "42",
+    "stability_check": false,
+    "data_file": null,
+    "max_samples": 200,
+    "max_length": 512,
+    "out_dir": "outputs/p2/llama31_8b/gradxw_global_k300",
+    "save_plots": true,
+    "export_topk_csv": true,
+    "export_stats": true,
+    "verbose": false,
+    "downstream_tasks": false,
+    "task_samples": 100,
+    "weight_analysis": false,
+    "architecture_analysis": false,
+    "temporal_stability": false,
+    "advanced_perturbations": null,
+    "clustering_method": "kmeans",
+    "n_clusters": 5
+  },
+  "model": {
+    "name": "meta-llama/Llama-3.1-8B",
+    "details": {}
+  },
+  "seeds": {
+    "random_seeds": [
+      42
+    ],
+    "torch_seed": 42,
+    "numpy_seed": "42"
+  },
+  "hardware": {
+    "cpu_count": 64,
+    "platform": "Linux-6.11.0-1011-nvidia-64k-aarch64-with-glibc2.39",
+    "processor": "aarch64",
+    "machine": "aarch64",
+    "gpu": {
+      "available": true,
+      "device_count": 1,
+      "current_device": 0,
+      "device_name": "NVIDIA GH200 480GB",
+      "memory_allocated": 0,
+      "memory_cached": 0
+    }
+  },
+  "results": {
+    "error": "You are trying to access a gated repo.\nMake sure to have access to it at https://huggingface.co/meta-llama/Llama-3.1-8B.\n401 Client Error. (Request ID: Root=1-68b5e015-6f5e2cce459f15ce63b3b578;6a084ea9-13cc-4471-8fb0-c3669c2ed2cb)\n\nCannot access gated repo for url https://huggingface.co/meta-llama/Llama-3.1-8B/resolve/main/config.json.\nAccess to model meta-llama/Llama-3.1-8B is restricted. You must have access to it and be authenticated to access it. Please log in.",
+    "success": false
+  },
+  "timestamp_end": "2025-09-01T18:04:05.138979",
+  "total_duration_seconds": 0.361921,
+  "total_duration_formatted": "0.4s"
+}

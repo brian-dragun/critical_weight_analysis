@@ -1,0 +1,113 @@
+{
+  "experiment_name": "meta-llama/Llama-3.1-8B_grad_x_weight_k100",
+  "timestamp_start": "2025-09-01T16:44:01.944185",
+  "manifest_version": "1.0",
+  "environment": {
+    "python_version": "3.12.11 (main, Aug 28 2025, 17:07:46) [Clang 20.1.4 ]",
+    "platform": "Linux-6.11.0-1011-nvidia-64k-aarch64-with-glibc2.39",
+    "hostname": "192-222-58-149",
+    "user": "ubuntu",
+    "working_directory": "/lambda/nfs/nova/critical_weight_analysis",
+    "environment_variables": {
+      "LD_LIBRARY_PATH": "/usr/mpi/gcc/openmpi-4.1.7rc1/lib:/usr/mpi/gcc/openmpi-4.1.7rc1/lib64",
+      "PATH": "/lambda/nfs/nova/critical_weight_analysis/.venv/bin:/home/ubuntu/.vscode-server/cli/servers/Stable-6f17636121051a53c88d3e605c491d22af2ba755/server/bin/remote-cli:/home/ubuntu/.local/bin:/usr/mpi/gcc/openmpi-4.1.7rc1/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin:/home/ubuntu/.vscode-server/data/User/globalStorage/github.copilot-chat/debugCommand"
+    }
+  },
+  "git": {
+    "commit_hash": "2851854040f7df54696e36964e110947448ffd94",
+    "branch": "master",
+    "has_uncommitted_changes": true,
+    "status": "D outputs/baseline_execution_log.md\n D outputs/baseline_execution_log_20250829_174130.md\n D outputs/baseline_execution_log_20250829_174741.md\n D outputs/baseline_execution_log_20250829_174952.md\n D outputs/baseline_execution_log_20250829_181344.md\n D outputs/baseline_report.md\n D outputs/baseline_report_20250829_174130.md\n D outputs/baseline_report_20250829_174741.md\n D outputs/baseline_report_20250829_174952.md\n D outputs/baseline_report_20250829_181344.md\n D outputs/baselines/EleutherAI__pythia-1.4b/smoke/manifest.json\n D outputs/baselines/EleutherAI__pythia-1.4b/smoke/results_summary.json\n D outputs/baselines/meta-llama__Llama-3.1-8B/smoke/manifest.json\n D outputs/baselines/meta-llama__Llama-3.1-8B/smoke/results_summary.json\n D outputs/baselines/microsoft__Phi-3-mini-4k-instruct/smoke/manifest.json\n D outputs/baselines/microsoft__Phi-3-mini-4k-instruct/smoke/results_summary.json\n D outputs/baselines/mistralai__Mistral-7B-v0.3/smoke/manifest.json\n D outputs/baselines/mistralai__Mistral-7B-v0.3/smoke/results_summary.json\n M scripts/baseline_runner.py\n M scripts/generate_baseline_docs.py\n M src/models/__pycache__/__init__.cpython-312.pyc\n M src/models/__pycache__/loader.cpython-312.pyc\n M src/models/loader.py"
+  },
+  "library_versions": {
+    "torch": "2.5.1",
+    "numpy": "2.1.2",
+    "transformers": "4.56.0",
+    "pandas": "2.3.2",
+    "sklearn": "1.7.1",
+    "matplotlib": "3.10.6",
+    "seaborn": "0.13.2"
+  },
+  "config": {
+    "model": "meta-llama/Llama-3.1-8B",
+    "device": "cuda",
+    "dtype": "bf16",
+    "metric": "grad_x_weight",
+    "topk": 100,
+    "mode": "per_layer",
+    "perturb": null,
+    "perturb_scale": 1.0,
+    "perturb_prob": 0.1,
+    "controls": null,
+    "seeds": "42",
+    "stability_check": false,
+    "data_file": null,
+    "max_samples": 200,
+    "max_length": 512,
+    "out_dir": "outputs/p1_baseline/llama31_8b",
+    "save_plots": true,
+    "verbose": false,
+    "downstream_tasks": false,
+    "task_samples": 100,
+    "weight_analysis": false,
+    "architecture_analysis": false,
+    "temporal_stability": false,
+    "advanced_perturbations": null,
+    "clustering_method": "kmeans",
+    "n_clusters": 5
+  },
+  "model": {
+    "name": "meta-llama/Llama-3.1-8B",
+    "details": {}
+  },
+  "seeds": {
+    "random_seeds": [
+      42
+    ],
+    "torch_seed": 42,
+    "numpy_seed": "42"
+  },
+  "hardware": {
+    "cpu_count": 64,
+    "platform": "Linux-6.11.0-1011-nvidia-64k-aarch64-with-glibc2.39",
+    "processor": "aarch64",
+    "machine": "aarch64",
+    "gpu": {
+      "available": true,
+      "device_count": 1,
+      "current_device": 0,
+      "device_name": "NVIDIA GH200 480GB",
+      "memory_allocated": 0,
+      "memory_cached": 0
+    }
+  },
+  "timing": {
+    "model_loading": {
+      "duration_seconds": 4.165146112442017,
+      "duration_formatted": "4.2s"
+    },
+    "sensitivity_analysis": {
+      "duration_seconds": 45.11362171173096,
+      "duration_formatted": "45.1s"
+    }
+  },
+  "data": {
+    "num_texts": 100,
+    "data_source": "default",
+    "max_length": 512
+  },
+  "output_files": {
+    "plot_sensitivity_distribution": "outputs/p1_baseline/llama31_8b/plots/grad_x_weight_k100_sensitivity_distribution.png",
+    "plot_layer_comparison": "outputs/p1_baseline/llama31_8b/plots/grad_x_weight_k100_layer_comparison.png",
+    "plot_sensitivity_heatmap": "outputs/p1_baseline/llama31_8b/plots/grad_x_weight_k100_sensitivity_heatmap.png"
+  },
+  "results": {
+    "total_weights_analyzed": 8029995008,
+    "top_k_selected": 100,
+    "ranking_mode": "per_layer",
+    "metric_used": "grad_x_weight"
+  },
+  "timestamp_end": "2025-09-01T16:59:43.412895",
+  "total_duration_seconds": 941.46871,
+  "total_duration_formatted": "15.7m"
+}

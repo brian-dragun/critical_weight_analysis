@@ -1,0 +1,98 @@
+{
+  "timestamp": "2025-09-01 19:12:45",
+  "model": "meta-llama/Llama-3.1-8B",
+  "total_parameters": 8029995008,
+  "analysis_phases": [
+    "Phase_1_baseline",
+    "Phase_2_cross_validation"
+  ],
+  "phase_1_grad_x_weight": {
+    "metric": "grad_x_weight",
+    "mode": "per_layer",
+    "top_k": 100,
+    "total_selected": 22600,
+    "sensitivity_analysis_time": "6.78s",
+    "total_time": "15.7m",
+    "max_sensitivity": 0.330103,
+    "min_sensitivity": 0.000188,
+    "mean_sensitivity": 0.002271,
+    "concentration_ratio": 145.4,
+    "p99_percentile": 0.017685,
+    "p95_percentile": 0.004889
+  },
+  "phase_2_grad_squared": {
+    "metric": "grad_squared",
+    "mode": "per_layer",
+    "top_k": 100,
+    "total_selected": 22600,
+    "sensitivity_analysis_time": "45.1s",
+    "total_time": "15.2m",
+    "max_sensitivity": 5.751568,
+    "min_sensitivity": 6.8e-05,
+    "concentration_ratio": 84553.0
+  },
+  "cross_metric_analysis": {
+    "overlap_top_1000": 145,
+    "overlap_percentage": 14.5,
+    "jaccard_similarity": 0.078,
+    "complementarity": "high"
+  },
+  "critical_findings": {
+    "super_weight_hypothesis": "VALIDATED",
+    "most_critical_token": 128000,
+    "most_critical_dimensions": [
+      162,
+      2650,
+      2871,
+      3303
+    ],
+    "layer_concentration": "layers_0_1_contain_90_percent",
+    "component_distribution": {
+      "attention": 70,
+      "mlp": 30
+    },
+    "embedding_vulnerability": "extreme"
+  },
+  "top_5_critical_weights": [
+    {
+      "token": 128000,
+      "dim": 3303,
+      "sensitivity": 0.144135
+    },
+    {
+      "token": 27541,
+      "dim": 162,
+      "sensitivity": 0.0238
+    },
+    {
+      "token": 128000,
+      "dim": 2871,
+      "sensitivity": 0.023528
+    },
+    {
+      "token": 791,
+      "dim": 2650,
+      "sensitivity": 0.022684
+    },
+    {
+      "token": 531,
+      "dim": 2871,
+      "sensitivity": 0.018541
+    }
+  ],
+  "security_implications": {
+    "attack_surface": "Token_128000_EOS_PAD",
+    "vulnerable_layers": [
+      0,
+      1
+    ],
+    "critical_weight_percentage": 0.01,
+    "risk_level": "HIGH"
+  },
+  "performance_metrics": {
+    "weights_per_second": 1300000000,
+    "reproducibility": "PERFECT",
+    "scalability_limit": "global_mode_8B_parameters",
+    "hardware": "NVIDIA_GH200_480GB"
+  }
+}

@@ -1,0 +1,124 @@
+{
+  "experiment_name": "meta-llama/Llama-3.1-8B_grad_squared_k100",
+  "timestamp_start": "2025-09-01T18:51:45.179790",
+  "manifest_version": "1.0",
+  "environment": {
+    "python_version": "3.12.11 (main, Aug 28 2025, 17:07:46) [Clang 20.1.4 ]",
+    "platform": "Linux-6.11.0-1011-nvidia-64k-aarch64-with-glibc2.39",
+    "hostname": "192-222-58-149",
+    "user": "ubuntu",
+    "working_directory": "/lambda/nfs/nova/critical_weight_analysis",
+    "environment_variables": {
+      "HF_HUB_CACHE": "/data/cache/hf/hub",
+      "TRANSFORMERS_CACHE": "/data/cache/hf/transformers",
+      "CUDA_LAUNCH_BLOCKING": "0",
+      "TORCH_CUDNN_V8_API_ENABLED": "1",
+      "HF_HOME": "/data/cache/hf",
+      "LD_LIBRARY_PATH": "/usr/mpi/gcc/openmpi-4.1.7rc1/lib:/usr/mpi/gcc/openmpi-4.1.7rc1/lib64",
+      "TORCH_HOME": "/data/cache/torch",
+      "PATH": "/lambda/nfs/nova/critical_weight_analysis/.venv/bin:/home/ubuntu/.local/bin:/home/ubuntu/.local/bin:/home/ubuntu/.local/bin:/home/ubuntu/.vscode-server/cli/servers/Stable-6f17636121051a53c88d3e605c491d22af2ba755/server/bin/remote-cli:/home/ubuntu/.local/bin:/usr/mpi/gcc/openmpi-4.1.7rc1/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin:/home/ubuntu/.vscode-server/data/User/globalStorage/github.copilot-chat/debugCommand"
+    }
+  },
+  "git": {
+    "commit_hash": "08ed53df8653ab5b51748c1180bd9fecdc3a7331",
+    "branch": "master",
+    "has_uncommitted_changes": true,
+    "status": "M src/models/__pycache__/loader.cpython-312.pyc\n?? --out-dir"
+  },
+  "library_versions": {
+    "torch": "2.5.1",
+    "numpy": "2.1.2",
+    "transformers": "4.56.0",
+    "pandas": "2.3.2",
+    "sklearn": "1.7.1",
+    "matplotlib": "3.10.6",
+    "seaborn": "0.13.2"
+  },
+  "config": {
+    "model": "meta-llama/Llama-3.1-8B",
+    "device": "cuda",
+    "dtype": "bf16",
+    "metric": "grad_squared",
+    "topk": 100,
+    "mode": "per_layer",
+    "perturb": null,
+    "perturb_scale": 1.0,
+    "perturb_prob": 0.1,
+    "scale": 1.2,
+    "noise_sigma": 0.05,
+    "bits": 1,
+    "controls": null,
+    "seeds": "42",
+    "stability_check": false,
+    "data_file": null,
+    "max_samples": 200,
+    "max_length": 512,
+    "out_dir": "outputs/p2/llama31_8b/gradsq_perlayer_k100",
+    "save_plots": true,
+    "export_topk_csv": true,
+    "export_stats": true,
+    "verbose": false,
+    "downstream_tasks": false,
+    "task_samples": 100,
+    "weight_analysis": false,
+    "architecture_analysis": false,
+    "temporal_stability": false,
+    "advanced_perturbations": null,
+    "clustering_method": "kmeans",
+    "n_clusters": 5
+  },
+  "model": {
+    "name": "meta-llama/Llama-3.1-8B",
+    "details": {}
+  },
+  "seeds": {
+    "random_seeds": [
+      42
+    ],
+    "torch_seed": 42,
+    "numpy_seed": "42"
+  },
+  "hardware": {
+    "cpu_count": 64,
+    "platform": "Linux-6.11.0-1011-nvidia-64k-aarch64-with-glibc2.39",
+    "processor": "aarch64",
+    "machine": "aarch64",
+    "gpu": {
+      "available": true,
+      "device_count": 1,
+      "current_device": 0,
+      "device_name": "NVIDIA GH200 480GB",
+      "memory_allocated": 0,
+      "memory_cached": 0
+    }
+  },
+  "timing": {
+    "model_loading": {
+      "duration_seconds": 4.211786508560181,
+      "duration_formatted": "4.2s"
+    },
+    "sensitivity_analysis": {
+      "duration_seconds": 45.11493897438049,
+      "duration_formatted": "45.1s"
+    }
+  },
+  "data": {
+    "num_texts": 100,
+    "data_source": "default",
+    "max_length": 512
+  },
+  "output_files": {
+    "plot_sensitivity_distribution": "outputs/p2/llama31_8b/gradsq_perlayer_k100/plots/grad_squared_k100_sensitivity_distribution.png",
+    "plot_layer_comparison": "outputs/p2/llama31_8b/gradsq_perlayer_k100/plots/grad_squared_k100_layer_comparison.png",
+    "plot_sensitivity_heatmap": "outputs/p2/llama31_8b/gradsq_perlayer_k100/plots/grad_squared_k100_sensitivity_heatmap.png"
+  },
+  "results": {
+    "total_weights_analyzed": 8029995008,
+    "top_k_selected": 100,
+    "ranking_mode": "per_layer",
+    "metric_used": "grad_squared"
+  },
+  "timestamp_end": "2025-09-01T19:06:55.161874",
+  "total_duration_seconds": 909.982084,
+  "total_duration_formatted": "15.2m"
+}
