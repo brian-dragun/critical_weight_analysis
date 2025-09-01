@@ -1,9 +1,0 @@
-{
-  "model_id": "EleutherAI/pythia-1.4b",
-  "baseline": "smoke",
-  "best_ppl": 1.2003548092909309,
-  "best_acc": 0.96875,
-  "peak_vram_gb": 2.862053394317627,
-  "avg_tok_per_sec": 9353.131408685957,
-  "created": "2025-08-29T18:08:52Z"
-}

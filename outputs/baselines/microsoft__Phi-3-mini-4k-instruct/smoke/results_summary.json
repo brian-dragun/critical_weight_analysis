@@ -1,9 +1,0 @@
-{
-  "model_id": "microsoft/Phi-3-mini-4k-instruct",
-  "baseline": "smoke",
-  "best_ppl": 1.110960114391127,
-  "best_acc": 0.97314453125,
-  "peak_vram_gb": 7.29604959487915,
-  "avg_tok_per_sec": 6749.92522534628,
-  "created": "2025-08-29T18:08:30Z"
-}

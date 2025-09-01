@@ -15,6 +15,9 @@ def load_model(model_name: str, device: str = 'cpu'):
         model, tokenizer
     """
     tokenizer = AutoTokenizer.from_pretrained(model_name)
+    # Ensure pad_token is set
+    if tokenizer.pad_token is None:
+        tokenizer.pad_token = tokenizer.eos_token
     model = AutoModelForCausalLM.from_pretrained(model_name)
     model.to(device)
     return model, tokenizer

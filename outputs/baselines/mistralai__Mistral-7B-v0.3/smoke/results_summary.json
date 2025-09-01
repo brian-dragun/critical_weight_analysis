@@ -1,9 +1,0 @@
-{
-  "model_id": "mistralai/Mistral-7B-v0.3",
-  "baseline": "smoke",
-  "best_ppl": 1.1411997007406436,
-  "best_acc": 0.97265625,
-  "peak_vram_gb": 13.708038806915283,
-  "avg_tok_per_sec": 5415.789252949547,
-  "created": "2025-08-29T18:08:10Z"
-}
